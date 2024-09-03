@@ -76,13 +76,13 @@ jobs:
 
       - name: Build ui
         run: pnpm build
-        working-directory: ../apps/app
+        working-directory: ${{ github.workspace }}/apps/app
 
       - name: Publish build artifact
         uses: actions/upload-artifact@v3
         with:
           name: ui-build
-          path: ../apps/app/dist
+          path: ${{ github.workspace }}/apps/app/dist
 
   deploy:
     name: deploy to development
