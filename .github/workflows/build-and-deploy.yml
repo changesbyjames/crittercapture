@@ -40,7 +40,7 @@ jobs:
         with:
           file: services/api/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }}-api
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Build and push Docker image
@@ -48,7 +48,7 @@ jobs:
         with:
           file: services/ingest/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }}-ingest
           labels: ${{ steps.meta.outputs.labels }}
 
   build_ui:
@@ -75,14 +75,15 @@ jobs:
         run: pnpm i
 
       - name: Build ui
-        run: pnpm build
-        working-directory: ${{ github.workspace }}/apps/app
+        run: |
+          pnpm --filter=@critter/ui build
+          pnpm --filter=@critter/ui deploy app
 
       - name: Publish build artifact
         uses: actions/upload-artifact@v3
         with:
           name: ui-build
-          path: ${{ github.workspace }}/apps/app/dist
+          path: app
 
   deploy:
     name: deploy to development
@@ -125,7 +126,7 @@ jobs:
           config-map: |
             {
               "api-image": { value: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}", secret: false },
-              "api-tag": { value: "main-${{ github.run_id }}", secret: false }
+              "api-tag": { value: "main-${{ github.run_id }}-api", secret: false }
             }
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
