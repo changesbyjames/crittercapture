@@ -34,8 +34,6 @@ interface KeyParams {
   id?: number;
 }
 
-type Key = string[];
-
 interface Event {
   name: string;
   change: Change;

@@ -14,7 +14,7 @@ export const start = async () => {
     clientSecret: env.variables.TWITCH_CLIENT_SECRET
   });
 
-  auth.onRefresh((userId, token) => saveToken(token));
+  auth.onRefresh((_, token) => saveToken(token));
   await auth.addUserForToken(token, ['chat']);
 
   const chat = new ChatClient({ authProvider: auth, channels: ['strangecyan', 'alveusgg'] });
@@ -24,7 +24,7 @@ export const start = async () => {
     if (!message.startsWith('!')) return;
 
     if (message.startsWith('!polcapture')) {
-      const [command, duration, rewind] = message.split(' ');
+      const [_, duration, rewind] = message.split(' ');
       if (isNaN(Number(duration)) || isNaN(Number(rewind))) {
         chat.say(channel, `@${user} Invalid duration or rewind. Please use !polcapture <duration> <rewind>`);
         return;

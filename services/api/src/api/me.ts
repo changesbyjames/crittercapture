@@ -6,7 +6,6 @@ import { useUser } from '../utils/env/env.js';
 export default router({
   permissions: procedure.query(async ({ ctx }) => {
     const user = useUser();
-    console.log(user);
     const [role] = await ctx.db.select().from(roles).where(eq(roles.username, user.id));
 
     const permissions = {
@@ -35,5 +34,7 @@ export default router({
       permissions.editor = true;
       return permissions;
     }
+
+    return permissions;
   })
 });

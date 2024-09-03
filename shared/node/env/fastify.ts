@@ -10,7 +10,7 @@ interface AssignEnvironmentOptions<T> {
 
 export const InitialiseTenantEnvironment = fp(
   async <T>(fastify: FastifyInstance, options: AssignEnvironmentOptions<T>) => {
-    fastify.addHook('onRequest', (req, res, done) => {
+    fastify.addHook('onRequest', (req, _, done) => {
       const prefix = req.headers[options.header] ?? options.default;
       if (!prefix) throw new Error('Missing tenant prefix');
       if (typeof prefix !== 'string') throw new Error('Invalid tenant prefix');

@@ -4,6 +4,7 @@ export interface Config extends BackstageConfig {
   variables: {
     apiBaseUrl: string;
     imageResizeCDNUrl: string;
+    appInsightsConnectionString: string;
   };
   flags: {
     b: boolean;

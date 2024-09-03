@@ -1,8 +1,6 @@
-import debug from 'debug';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
-const log = debug('critter:db');
 
 import { listen } from './listen.js';
 import * as schema from './schema/index.js';

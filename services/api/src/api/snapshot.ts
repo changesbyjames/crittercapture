@@ -15,7 +15,7 @@ export default router({
       const [snapshot] = await ctx.db.select().from(snapshots).where(eq(snapshots.id, input.id));
       if (snapshot.status === 'complete') return;
 
-      for await (const change of subscribeToChanges({ table: 'snapshots', events: ['update'], id: input.id })) {
+      for await (const _ of subscribeToChanges({ table: 'snapshots', events: ['update'], id: input.id })) {
         const [snapshot] = await ctx.db.select().from(snapshots).where(eq(snapshots.id, input.id));
         yield snapshot;
 

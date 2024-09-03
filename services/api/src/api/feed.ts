@@ -11,7 +11,7 @@ import { integrationProcedure, procedure, router } from '../trpc/trpc.js';
 export default router({
   subscribeToRequestsForFeed: integrationProcedure
     .input(z.object({ feedId: z.string() }))
-    .subscription(async function* ({ ctx, input }) {
+    .subscription(async function* ({ input }) {
       for await (const change of subscribeToChanges({ table: 'snapshots', events: ['insert'] })) {
         const request = await getSnapshot(change.id);
         if (request.feedId !== input.feedId || request.status !== 'pending') break;
@@ -27,11 +27,11 @@ export default router({
 
   addImagesToSnapshot: procedure
     .input(z.object({ snapshotId: z.number(), images: z.array(z.string()) }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       await addImagesToSnapshot(input.snapshotId, input.images);
     }),
 
-  completeSnapshotRequest: procedure.input(z.object({ snapshotId: z.number() })).mutation(async ({ ctx, input }) => {
+  completeSnapshotRequest: procedure.input(z.object({ snapshotId: z.number() })).mutation(async ({ input }) => {
     await completeSnapshotRequest(input.snapshotId);
   })
 });
