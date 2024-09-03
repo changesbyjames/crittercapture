@@ -110,7 +110,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ui-build
-          path: app
+          path: app/dist
 
   deploy:
     name: deploy to development
