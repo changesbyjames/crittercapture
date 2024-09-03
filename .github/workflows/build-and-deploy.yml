@@ -76,13 +76,13 @@ jobs:
 
       - name: Build ui
         run: pnpm build
-        working-directory: apps/app
+        working-directory: ../apps/app
 
       - name: Publish build artifact
         uses: actions/upload-artifact@v3
         with:
           name: ui-build
-          path: apps/app/dist
+          path: ../apps/app/dist
 
   deploy:
     name: deploy to development
