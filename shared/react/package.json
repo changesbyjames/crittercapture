@@ -1,0 +1,24 @@
+{
+  "name": "@critter/react",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.3.29",
+    "react": "^18.3.1",
+    "react-hotkeys-hook": "^4.5.0",
+    "react-router-dom": "^6.26.1",
+    "tailwind-merge": "^2.5.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.4"
+  }
+}
