@@ -133,6 +133,8 @@ export = async () => {
     serverName: server.name
   });
 
+  const certificateName = config.get('api-certificate-name');
+
   // MARK: API
   const api = new API(`${id}-api`, {
     name: 'api',
@@ -155,7 +157,8 @@ export = async () => {
       TWITCH_CLIENT_ID: config.require('twitch-client-id'),
       TWITCH_CLIENT_SECRET: config.require('twitch-client-secret'),
       TWITCH_USERNAME: config.require('twitch-username'),
-      UI_URL: config.require('ui-url')
+      UI_URL: `https://${config.require('ui-domain')}`,
+      API_URL: `https://${config.require('api-domain')}`
     },
     image: config.require('api-image'),
     scale: {
@@ -169,14 +172,19 @@ export = async () => {
         path: '/data'
       }
     },
-
     sidecars: [
       {
         image: 'docker.dragonflydb.io/dragonflydb/dragonfly:latest',
         name: 'dragonfly',
         env: {}
       }
-    ]
+    ],
+    domain: certificateName
+      ? {
+          domain: config.require('api-domain'),
+          certificateName: config.require('api-certificate-name')
+        }
+      : undefined
   });
 
   // MARK: Backstage
@@ -184,7 +192,7 @@ export = async () => {
     ...website,
     env: {
       variables: {
-        apiBaseUrl: config.get('api-url') ?? api.defaultUrl,
+        apiBaseUrl: `https://${config.require('api-domain')}`,
         appInsightsConnectionString: appInsights.connectionString
       },
       flags: {}

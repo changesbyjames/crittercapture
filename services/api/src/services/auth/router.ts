@@ -37,7 +37,7 @@ export default async function register(router: FastifyInstance) {
     const state = await redis.get(query.state);
     if (!state) throw new Error('Login expired or invalid.');
 
-    const token = await exchangeCodeForToken(query.code);
+    const token = await exchangeCodeForToken('/auth/redirect', query.code);
     if (!(await validateToken(token.accessToken))) {
       throw new Error('Invalid token');
     }

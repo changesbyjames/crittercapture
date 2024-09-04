@@ -5,22 +5,32 @@ import { useEnvironment } from '../../utils/env/env.js';
 const scopes = ['chat:read', 'chat:edit', 'user:read:chat', 'user:write:chat'];
 export const createSignInRequest = (path: string, state: string) => {
   const env = useEnvironment();
+  let origin = `http://${env.variables.HOST}:${env.variables.PORT}`;
+  if (env.variables.API_URL) {
+    origin = env.variables.API_URL;
+  }
+
   const url = new URL('https://id.twitch.tv/oauth2/authorize');
   url.searchParams.set('client_id', env.variables.TWITCH_CLIENT_ID);
-  url.searchParams.set('redirect_uri', `http://${env.variables.HOST}:${env.variables.PORT}${path}`);
+  url.searchParams.set('redirect_uri', `${origin}${path}`);
   url.searchParams.set('response_type', 'code');
   url.searchParams.set('scope', scopes.join(' '));
   url.searchParams.set('state', state);
   return url.toString();
 };
 
-export const exchangeCodeForToken = async (code: string) => {
+export const exchangeCodeForToken = async (path: string, code: string) => {
   const env = useEnvironment();
+  let origin = `http://${env.variables.HOST}:${env.variables.PORT}`;
+  if (env.variables.API_URL) {
+    origin = env.variables.API_URL;
+  }
+
   const token = await exchangeCode(
     env.variables.TWITCH_CLIENT_ID,
     env.variables.TWITCH_CLIENT_SECRET,
     code,
-    `http://${env.variables.HOST}:${env.variables.PORT}/auth/redirect`
+    `${origin}${path}`
   );
 
   return token;

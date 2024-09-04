@@ -23,6 +23,7 @@ export const config = z.object({
   POSTGRES_SSL: z.coerce.boolean().default(false),
 
   UI_URL: z.string(),
+  API_URL: z.string().optional(),
 
   JWT_SECRET: z.string().transform(value => Buffer.from(value, 'hex'))
 });

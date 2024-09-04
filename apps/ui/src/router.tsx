@@ -1,5 +1,6 @@
 import { useVariable } from '@critter/backstage';
 import { Button } from '@critter/react/button/juicy';
+import { Link } from '@critter/react/button/paper';
 import { Spinner } from '@critter/react/loaders/Spinner';
 import { cn } from '@critter/react/utils/cn';
 import { useSuspenseQuery } from '@tanstack/react-query';
@@ -360,6 +361,7 @@ const Thumbnail: FC<{ url: string; selected: boolean; onClick: () => void; keep:
 
 const Status: FC = () => {
   const api = useAPI();
+  const apiBaseUrl = useVariable('apiBaseUrl');
   const response = useSuspenseQuery({
     queryKey: ['status'],
     queryFn: () => {
@@ -367,7 +369,14 @@ const Status: FC = () => {
     }
   });
 
-  return <div>{JSON.stringify(response.data)}</div>;
+  return (
+    <div className="flex flex-col gap-2 items-center justify-center h-full w-full">
+      {JSON.stringify(response.data)}
+      <Link target="_blank" to={`${apiBaseUrl}/admin/signin`}>
+        Sign in as chat account
+      </Link>
+    </div>
+  );
 };
 
 export const router = createBrowserRouter([

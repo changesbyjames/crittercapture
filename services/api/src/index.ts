@@ -20,7 +20,7 @@ import { createEnvironment, withEnvironment } from './utils/env/env.js';
   try {
     const environment = await createEnvironment();
     await withEnvironment(environment, async () => {
-      const options = { maxParamLength: 5000, http2: environment.variables.NODE_ENV === 'production' };
+      const options = { maxParamLength: 5000 };
       const server = fastify(options);
       await server.register(cors);
       await server.register(authRouter);

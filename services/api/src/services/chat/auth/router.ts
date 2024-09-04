@@ -19,7 +19,7 @@ export default async function register(router: FastifyInstance) {
   router.get('/admin/redirect', async (request, reply) => {
     const env = useEnvironment();
     const query = TwitchRedirectResponse.parse(request.query);
-    const token = await exchangeCodeForToken(query.code);
+    const token = await exchangeCodeForToken('/admin/redirect', query.code);
     if (!(await validateToken(token.accessToken))) {
       throw new Error('Invalid token');
     }

@@ -1,4 +1,4 @@
-import { ContainerApp, ManagedEnvironmentsStorage } from '@pulumi/azure-native/app';
+import { BindingType, ContainerApp, ManagedEnvironmentsStorage } from '@pulumi/azure-native/app';
 import { getManagedEnvironment } from '@pulumi/azure-native/app/getManagedEnvironment';
 import { PrincipalType, RoleAssignment, getClientConfig } from '@pulumi/azure-native/authorization';
 
@@ -49,8 +49,11 @@ interface APIArgs {
     noOfRequestsPerInstance: number;
   };
   volumes?: Record<string, Volume>;
-
   sidecars?: RawContainerArgs[];
+  domain?: {
+    domain: string;
+    certificateName: string;
+  };
 }
 
 interface RegistryArgs {
@@ -116,6 +119,23 @@ const getStorageConnections = (volumes?: Record<string, Volume>) => {
   }));
 };
 
+const getCustomDomains = (
+  subscriptionId: Input<string>,
+  resourceGroupName: Input<string>,
+  environmentName: Input<string>,
+  domain?: { domain: string; certificateName: string }
+) => {
+  if (!domain) return [];
+
+  return [
+    {
+      name: domain.domain,
+      certificateId: interpolate`/subscriptions/${subscriptionId}/resourceGroups/${resourceGroupName}/providers/Microsoft.App/managedEnvironments/${environmentName}/managedCertificates/${domain.certificateName}`,
+      bindingType: BindingType.SniEnabled
+    }
+  ];
+};
+
 export class API extends ComponentResource {
   public readonly resourceGroupName: Input<string>;
   public readonly environmentName: Input<string>;
@@ -135,6 +155,7 @@ export class API extends ComponentResource {
           environmentName
         })
     );
+    const subscriptionId = getClientConfig().then(c => c.subscriptionId);
 
     if (typeof args.image === 'object' && args.image.registry) {
       registries.push({
@@ -156,7 +177,8 @@ export class API extends ComponentResource {
         configuration: {
           ingress: {
             external: true,
-            targetPort: args.port
+            targetPort: args.port,
+            customDomains: getCustomDomains(subscriptionId, args.resourceGroupName, environment.name, args.domain)
           },
           registries,
           secrets
@@ -223,8 +245,6 @@ export class API extends ComponentResource {
       if (!i.tenantId) throw new Error('No tenant ID found');
       return i as SystemAssignedIdentity;
     });
-
-    const subscriptionId = getClientConfig().then(c => c.subscriptionId);
 
     args.vaults?.forEach(config => {
       new RoleAssignment(
