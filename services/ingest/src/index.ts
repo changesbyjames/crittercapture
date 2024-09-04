@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os';
 // @ts-ignore
 global.EventSource = EventSource;
 
+import { ContainerClient } from '@azure/storage-blob';
 import { randomUUID } from 'node:crypto';
 import { cleanUpFiles, getSnapshots } from './snapshot.js';
 import { initializeStream, startSnapshots } from './stream.js';
@@ -36,12 +37,14 @@ export const start = () => {
         client.feed.subscribeToRequestsForFeed.subscribe(
           { feedId },
           {
-            onData: async data => {
-              const from = new Date(data.startCaptureAt);
-              const to = new Date(data.endCaptureAt);
+            onData: async ({ request, meta }) => {
+              const from = new Date(request.startCaptureAt);
+              const to = new Date(request.endCaptureAt);
               console.log(`Capturing from ${from} to ${to}`);
-              console.log(await getSnapshots(directory, feedId, { id: data.id, from, to }));
-              await client.feed.completeSnapshotRequest.mutate({ snapshotId: data.id });
+              console.log(
+                await getSnapshots(new ContainerClient(meta.creds), directory, feedId, { id: request.id, from, to })
+              );
+              await client.feed.completeSnapshotRequest.mutate({ snapshotId: request.id });
             },
             onError: err => {
               console.error(err);

@@ -1,6 +1,7 @@
 import { RefreshingAuthProvider } from '@twurple/auth';
 import { ChatClient } from '@twurple/chat';
 import { useEnvironment } from '../../utils/env/env.js';
+import { getPermissions } from '../auth/role.js';
 import { createSnapshotRequest } from '../snapshot/index.js';
 import { restoreToken, saveToken } from './auth/token.js';
 interface Status {
@@ -12,6 +13,12 @@ interface Status {
 const handler: Record<string, (chat: ChatClient, channel: string, user: string, message: string) => Promise<void>> = {
   capture: async (chat: ChatClient, channel: string, user: string, message: string) => {
     const env = useEnvironment();
+    const permissions = await getPermissions(user);
+
+    if (!permissions.editor) {
+      return;
+    }
+
     const [_, duration, rewind] = message.split(' ');
     if (isNaN(Number(duration)) || isNaN(Number(rewind))) {
       chat.say(channel, `@${user} Invalid duration or rewind. Please use !capture <duration> <rewind>`);
@@ -53,10 +60,11 @@ export const start = async () => {
   chat.connect();
 
   chat.onMessage(async (channel, user, message) => {
-    if (!message.startsWith('!')) return;
+    const env = useEnvironment();
+    if (!message.startsWith(env.variables.COMMAND_PREFIX)) return;
 
     for (const command of status.commands) {
-      if (message.startsWith(`!${command}`)) {
+      if (message.startsWith(`${env.variables.COMMAND_PREFIX}${command}`)) {
         await handler[command](chat, channel, user, message);
       }
     }

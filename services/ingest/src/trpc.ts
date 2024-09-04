@@ -14,13 +14,13 @@ export const client = createTRPCClient<AppRouter>({
       // uses the httpSubscriptionLink for subscriptions
       condition: op => op.type === 'subscription',
       true: unstable_httpSubscriptionLink({
-        url: process.env.API_URL!,
+        url: `http://localhost:35523`,
         eventSourceOptions: async () => {
           return { headers: { Authorization: `Basic ${makeAPIKey()}` } };
         }
       }),
       false: httpBatchLink({
-        url: process.env.API_URL!,
+        url: `http://localhost:35523`,
         headers: async () => ({ Authorization: `Basic ${makeAPIKey()}` })
       })
     })

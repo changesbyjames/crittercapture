@@ -1,3 +1,4 @@
+import { ContainerClient, StorageSharedKeyCredential } from '@azure/storage-blob';
 import { Redis, RedisOptions } from 'ioredis';
 import z from 'zod';
 import { initialise } from '../../db/db.js';
@@ -25,6 +26,11 @@ export const config = z.object({
   UI_URL: z.string(),
   API_URL: z.string().optional(),
 
+  STORAGE_ACCOUNT_NAME: z.string(),
+  STORAGE_ACCOUNT_KEY: z.string(),
+  CONTAINER_NAME: z.string(),
+
+  COMMAND_PREFIX: z.string().default('!'),
   JWT_SECRET: z.string().transform(value => Buffer.from(value, 'hex'))
 });
 
@@ -46,9 +52,15 @@ export const services = async (variables: z.infer<typeof config>) => {
     variables.POSTGRES_SSL
   );
 
+  const storage = new ContainerClient(
+    `https://${variables.STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${variables.CONTAINER_NAME}`,
+    new StorageSharedKeyCredential(variables.STORAGE_ACCOUNT_NAME, variables.STORAGE_ACCOUNT_KEY)
+  );
+
   return {
     redis,
     db: database.db,
-    postgres: database.client
+    postgres: database.client,
+    storage
   };
 };

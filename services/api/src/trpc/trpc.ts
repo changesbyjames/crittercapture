@@ -1,7 +1,8 @@
 import { initTRPC } from '@trpc/server';
 import { eq } from 'drizzle-orm';
 import { validateJWT } from 'oslo/jwt';
-import { feeds, roles } from '../db/schema/index.js';
+import { feeds } from '../db/schema/index.js';
+import { getPermissions } from '../services/auth/role.js';
 import { useUser, withUser } from '../utils/env/env.js';
 import { createContext } from './context.js';
 
@@ -27,8 +28,8 @@ export const procedure = t.procedure.use(async ({ ctx, next }) => {
 
 export const moderatorProcedure = procedure.use(async ({ ctx, next }) => {
   const user = useUser();
-  const [role] = await ctx.db.select().from(roles).where(eq(roles.username, user.id));
-  if (role?.role !== 'mod' && role?.role !== 'admin') {
+  const permissions = await getPermissions(user.id);
+  if (!permissions.moderator) {
     throw new Error('Unauthorized');
   }
   return next();
@@ -36,8 +37,8 @@ export const moderatorProcedure = procedure.use(async ({ ctx, next }) => {
 
 export const adminProcedure = procedure.use(async ({ ctx, next }) => {
   const user = useUser();
-  const [role] = await ctx.db.select().from(roles).where(eq(roles.username, user.id));
-  if (role?.role !== 'admin') {
+  const permissions = await getPermissions(user.id);
+  if (!permissions.administrate) {
     throw new Error('Unauthorized');
   }
   return next();
@@ -45,8 +46,10 @@ export const adminProcedure = procedure.use(async ({ ctx, next }) => {
 
 export const editorProcedure = procedure.use(async ({ ctx, next }) => {
   const user = useUser();
-  const [role] = await ctx.db.select().from(roles).where(eq(roles.username, user.id));
-  if (!role?.role) throw new Error('Unauthorized');
+  const permissions = await getPermissions(user.id);
+  if (!permissions.editor) {
+    throw new Error('Unauthorized');
+  }
   return next();
 });
 

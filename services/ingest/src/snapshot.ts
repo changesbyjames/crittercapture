@@ -5,10 +5,6 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { ContainerClient } from '@azure/storage-blob';
 import { client } from './trpc.js';
 
-const url = 'https://crittercapture.blob.core.windows.net/snapshots';
-const sas = '';
-const containerClient = new ContainerClient(`${url}?${sas}`);
-
 export const getSnapshotsFromDateRange = async (directory: string, start: Date, end: Date) => {
   const dir = await readdir(directory);
   const files = await Promise.all(
@@ -33,15 +29,26 @@ export const cleanUpFiles = async (directory: string) => {
   console.log('Cleaned up');
 };
 
-export const uploadFile = async (feedId: string, snapshotId: number, directory: string, file: string) => {
+export const uploadFile = async (
+  client: ContainerClient,
+  feedId: string,
+  snapshotId: number,
+  directory: string,
+  file: string
+) => {
   const id = `${feedId}/${snapshotId}-${file}`;
-  const blobClient = containerClient.getBlockBlobClient(id);
+  const blobClient = client.getBlockBlobClient(id);
   await blobClient.uploadFile(`${directory}/${file}`);
-  return `${url}/${id}`;
+  return `https://${client.accountName}.blob.core.windows.net/${client.containerName}/${id}`;
 };
 
 const TargetUploadRate = 1000 * 0.5;
-export const getSnapshots = (directory: string, feedId: string, request: { id: number; from: Date; to: Date }) => {
+export const getSnapshots = (
+  containerClient: ContainerClient,
+  directory: string,
+  feedId: string,
+  request: { id: number; from: Date; to: Date }
+) => {
   return new Promise<Date>(async (resolve, reject) => {
     const alreadyUploaded = new Set<string>();
 
@@ -52,7 +59,9 @@ export const getSnapshots = (directory: string, feedId: string, request: { id: n
         const toUpload = snapshots.filter(snapshot => !alreadyUploaded.has(snapshot));
         toUpload.forEach(snapshot => alreadyUploaded.add(snapshot));
 
-        const uploadedImages = await Promise.all(toUpload.map(file => uploadFile(feedId, request.id, directory, file)));
+        const uploadedImages = await Promise.all(
+          toUpload.map(file => uploadFile(containerClient, feedId, request.id, directory, file))
+        );
         let end = new Date();
         const timeToSleep = Math.max(0, TargetUploadRate - (end.getTime() - start.getTime()));
         await client.feed.addImagesToSnapshot.mutate({
