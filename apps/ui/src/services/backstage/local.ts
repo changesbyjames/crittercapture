@@ -1,7 +1,7 @@
 import { DeepPartial } from 'ts-essentials';
 import { Config } from './config';
 
-export const url = '';
+export const url = 'https://ccdevwebfb24def2.z5.web.core.windows.net/backstage.json';
 
 export const config: DeepPartial<Config> = {
   variables: {

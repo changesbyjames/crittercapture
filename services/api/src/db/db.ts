@@ -19,8 +19,7 @@ export const initialise = async (
     password,
     database,
     port,
-    ssl,
-    publications: 'alltables'
+    ssl
   });
 
   // Also do migrations in here

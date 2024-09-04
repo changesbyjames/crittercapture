@@ -24,9 +24,10 @@ interface Vault {
 interface APIArgs {
   resourceGroupName: Input<string>;
   environmentName: Input<string>;
+  name: string;
 
   env: Record<string, string | Input<string>>;
-  image: Image;
+  image: Image | string;
 
   vaults?: Vault[];
 
@@ -55,7 +56,8 @@ interface SystemAssignedIdentity {
   type: 'SystemAssigned';
 }
 
-const getName = (image: Image) => {
+const getName = (image: Image | string) => {
+  if (typeof image === 'string') return image;
   if (!image.registry) return `${image.name}:${image.tag}`;
   return `${image.registry.server}/${image.name}:${image.tag}`;
 };
@@ -80,7 +82,7 @@ export class API extends ComponentResource {
         })
     );
 
-    if (args.image.registry) {
+    if (typeof args.image === 'object' && args.image.registry) {
       registries.push({
         server: args.image.registry.server,
         username: args.image.registry.username,
@@ -108,7 +110,7 @@ export class API extends ComponentResource {
         template: {
           containers: [
             {
-              name: args.image.name,
+              name: args.name,
               image: getName(args.image),
               resources: {
                 cpu: 1,

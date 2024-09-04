@@ -77,7 +77,8 @@ export = async () => {
     resourceGroupName: group.name,
     sku: {
       name: SkuName.Standard_LRS
-    }
+    },
+    allowBlobPublicAccess: true
   });
 
   const container = new BlobContainer(`${simpleId}-image-blob`, {
@@ -115,6 +116,7 @@ export = async () => {
 
   // MARK: API
   const api = new API(`${id}-api`, {
+    name: 'api',
     resourceGroupName: group.name,
     environmentName: environment.name,
     port: 3000,
@@ -127,16 +129,14 @@ export = async () => {
       POSTGRES_SSL: 'true',
       POSTGRES_DB: database.name
     },
-    image: {
-      name: config.require('api-image'),
-      tag: config.require('api-tag')
-    },
+    image: config.require('api-image'),
     scale: {
       min: 1,
       max: 1,
       noOfRequestsPerInstance: 100
     }
   });
+
   // MARK: Backstage
   const backstage = new BackstageConfiguration(`${id}-backstage`, {
     ...website,
@@ -150,7 +150,7 @@ export = async () => {
   });
   // MARK: Outputs
   return {
-    website,
+    ...website,
     backstage
   };
 };
