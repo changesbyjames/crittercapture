@@ -151,6 +151,7 @@ jobs:
         with:
           organization: crittercapture
           requested-token-type: urn:pulumi:token-type:access_token:personal
+          scope: user:changesbyjames
 
       - name: Azure CLI Login
         uses: azure/login@v2
