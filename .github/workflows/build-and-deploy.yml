@@ -160,7 +160,7 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - uses: pulumi/actions@v4
+      - uses: pulumi/actions@v5
         id: pulumi
         with:
           command: up
@@ -177,7 +177,7 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
 
       - name: az cli copy
-        uses: azure/CLI@v1
+        uses: azure/CLI@v2
         with:
           azcliversion: 2.53.0
           inlineScript: |
