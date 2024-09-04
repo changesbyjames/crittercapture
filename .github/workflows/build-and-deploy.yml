@@ -150,7 +150,7 @@ jobs:
       - uses: pulumi/auth-actions@v1
         with:
           organization: crittercapture
-          requested-token-type: urn:pulumi:token-type:access_token:organization
+          requested-token-type: urn:pulumi:token-type:access_token:personal
 
       - name: Azure CLI Login
         uses: azure/login@v2
