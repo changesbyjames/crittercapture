@@ -49,7 +49,7 @@ jobs:
 
     permissions:
       contents: read
-      packages: write2
+      packages: write
 
     steps:
       - name: Checkout repository
