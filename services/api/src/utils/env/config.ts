@@ -19,7 +19,8 @@ export const config = z.object({
 
   UI_URL: z.string(),
 
-  JWT_SECRET: z.string().transform(value => Buffer.from(value, 'hex'))
+  JWT_SECRET: z.string().transform(value => Buffer.from(value, 'hex')),
+  NODE_ENV: z.enum(['development', 'production']).default('development')
 });
 
 export const services = async (variables: z.infer<typeof config>) => {

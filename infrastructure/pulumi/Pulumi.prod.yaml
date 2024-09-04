@@ -1,2 +1,10 @@
 config:
   azure-native:location: WestUS2
+  crittercapture:api-image: ghcr.io/changesbyjames/crittercapture:main-10700230754-api
+  crittercapture:jwt-secret:
+    secure: AAABALRo47EbLSZ++/XslsH1EnlB3vX5iE205SOK4WTv6ElXdOastYUuExCxrhcXOR4JZQJbxHd2cVRfgMhfvxaX5wASDhkPDKlJjbN2tP8cdEKLLyQ5rrabpi4eXLWI9QqU/xmEih8lL0WhXUU+J+NfnwReXC0Bcfn98yUb9nVwM/v/IDTAAFZ9UXleB/oAS0Jrmh5c6fI5rCEeBoWT8w==
+  crittercapture:twitch-client-id: itag8f5m4r3ynbtrz933d7qh7c6ffq
+  crittercapture:twitch-client-secret:
+    secure: AAABAG0Qc+H+3ZiC/BAz9AsJRBt8X4J1IJ+CwlpQMoqGGxehsbBxq6vAPwaY+FuEk1y005zygnwBljatENg=
+  crittercapture:twitch-username: pollinatorcam
+  crittercapture:ui-url: https://www.crittercapture.club

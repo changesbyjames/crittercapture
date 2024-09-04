@@ -1,4 +1,4 @@
-import { ContainerApp } from '@pulumi/azure-native/app';
+import { ContainerApp, ManagedEnvironmentsStorage } from '@pulumi/azure-native/app';
 import { getManagedEnvironment } from '@pulumi/azure-native/app/getManagedEnvironment';
 import { PrincipalType, RoleAssignment, getClientConfig } from '@pulumi/azure-native/authorization';
 
@@ -21,6 +21,17 @@ interface Vault {
   name: string;
 }
 
+interface RawContainerArgs {
+  name: string;
+  image: string;
+  env: Record<string, string | Input<string>>;
+}
+
+interface Volume {
+  storage: ManagedEnvironmentsStorage;
+  path: string;
+}
+
 interface APIArgs {
   resourceGroupName: Input<string>;
   environmentName: Input<string>;
@@ -37,6 +48,9 @@ interface APIArgs {
     max: number;
     noOfRequestsPerInstance: number;
   };
+  volumes?: Record<string, Volume>;
+
+  sidecars?: RawContainerArgs[];
 }
 
 interface RegistryArgs {
@@ -60,6 +74,46 @@ const getName = (image: Image | string) => {
   if (typeof image === 'string') return image;
   if (!image.registry) return `${image.name}:${image.tag}`;
   return `${image.registry.server}/${image.name}:${image.tag}`;
+};
+
+const getSidecarContainers = (sidecars?: RawContainerArgs[]) => {
+  if (!sidecars) return [];
+
+  return sidecars.map(sidecar => ({
+    name: sidecar.name,
+    image: sidecar.image,
+    env: [
+      ...Object.entries(sidecar.env).map(([name, value]) => {
+        return {
+          name,
+          value: output(value).apply(v => v || `WARNING: unknown value for ${name}`)
+        };
+      })
+    ],
+    resources: {
+      cpu: 1,
+      memory: '2.0Gi'
+    }
+  }));
+};
+
+const getVolumeMounts = (volumes?: Record<string, Volume>) => {
+  if (!volumes) return [];
+
+  return Object.entries(volumes).map(([name, volume]) => ({
+    volumeName: name,
+    mountPath: volume.path
+  }));
+};
+
+const getStorageConnections = (volumes?: Record<string, Volume>) => {
+  if (!volumes) return [];
+
+  return Object.entries(volumes).map(([name, volume]) => ({
+    name,
+    storageName: volume.storage.name,
+    storageType: 'AzureFile'
+  }));
 };
 
 export class API extends ComponentResource {
@@ -131,8 +185,10 @@ export class API extends ComponentResource {
                   name: 'PORT',
                   value: args.port.toString()
                 }
-              ]
-            }
+              ],
+              volumeMounts: getVolumeMounts(args.volumes)
+            },
+            ...getSidecarContainers(args.sidecars)
           ],
           scale: {
             maxReplicas: args.scale.max,
@@ -148,7 +204,8 @@ export class API extends ComponentResource {
                 name: 'httpscalingrule'
               }
             ]
-          }
+          },
+          volumes: getStorageConnections(args.volumes)
         }
       },
       { parent: this }

@@ -17,20 +17,20 @@ import { createEnvironment, withEnvironment } from './utils/env/env.js';
 
 (async () => {
   try {
-    const server = fastify({ maxParamLength: 5000 });
-    await server.register(cors);
-    await server.register(authRouter);
-
-    await server.register(fastifyTRPCPlugin, {
-      trpcOptions: {
-        router,
-        createContext,
-        onError() {}
-      } satisfies FastifyTRPCPluginOptions<AppRouter>['trpcOptions']
-    });
-
     const environment = await createEnvironment();
     await withEnvironment(environment, async () => {
+      const options = { maxParamLength: 5000, http2: environment.variables.NODE_ENV === 'production' };
+      const server = fastify(options);
+      await server.register(cors);
+      await server.register(authRouter);
+
+      await server.register(fastifyTRPCPlugin, {
+        trpcOptions: {
+          router,
+          createContext,
+          onError() {}
+        } satisfies FastifyTRPCPluginOptions<AppRouter>['trpcOptions']
+      });
       server.listen({ port: Number(process.env.PORT), host: process.env.HOST }, async (err, address) => {
         if (err) {
           console.error(err);

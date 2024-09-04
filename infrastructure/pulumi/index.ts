@@ -3,12 +3,13 @@ import { getSharedKeysOutput, GetSharedKeysResult, Workspace } from '@pulumi/azu
 import { ResourceGroup } from '@pulumi/azure-native/resources';
 import { Config, getProject, getStack } from '@pulumi/pulumi';
 
-import { ManagedEnvironment } from '@pulumi/azure-native/app';
+import { ManagedEnvironment, ManagedEnvironmentsStorage } from '@pulumi/azure-native/app';
 import { API } from './resources/API';
 
 import { Configuration, Database } from '@pulumi/azure-native/dbforpostgresql';
 import {
   BlobContainer,
+  FileShare,
   Kind,
   listStorageAccountKeysOutput,
   SkuName,
@@ -81,19 +82,37 @@ export = async () => {
     allowBlobPublicAccess: true
   });
 
-  const container = new BlobContainer(`${simpleId}-image-blob`, {
-    resourceGroupName: group.name,
-    accountName: storage.name,
-    publicAccess: 'Blob',
-    containerName: 'images'
-  });
-
   const key = listStorageAccountKeysOutput({
     resourceGroupName: group.name,
     accountName: storage.name
   }).apply((r: ListStorageAccountKeysResult) => {
     if (!r.keys[0].value) throw new Error('Primary key not found');
     return r.keys[0].value;
+  });
+
+  const share = new FileShare(`${simpleId}share`, {
+    resourceGroupName: group.name,
+    accountName: storage.name
+  });
+
+  const environmentStorage = new ManagedEnvironmentsStorage(`${simpleId}-stge`, {
+    resourceGroupName: group.name,
+    environmentName: environment.name,
+    properties: {
+      azureFile: {
+        accountName: storage.name,
+        shareName: share.name,
+        accessMode: 'ReadWrite',
+        accountKey: key
+      }
+    }
+  });
+
+  const container = new BlobContainer(`${simpleId}-image-blob`, {
+    resourceGroupName: group.name,
+    accountName: storage.name,
+    publicAccess: 'Blob',
+    containerName: 'images'
   });
 
   // MARK: Database
@@ -127,14 +146,37 @@ export = async () => {
       POSTGRES_USER: server.administratorUsername,
       POSTGRES_PASSWORD: server.administratorPassword,
       POSTGRES_SSL: 'true',
-      POSTGRES_DB: database.name
+      POSTGRES_DB: database.name,
+
+      REDIS_HOST: 'localhost',
+      REDIS_PORT: '6379',
+
+      JWT_SECRET: config.require('jwt-secret'),
+      TWITCH_CLIENT_ID: config.require('twitch-client-id'),
+      TWITCH_CLIENT_SECRET: config.require('twitch-client-secret'),
+      TWITCH_USERNAME: config.require('twitch-username'),
+      UI_URL: config.require('ui-url')
     },
     image: config.require('api-image'),
     scale: {
       min: 1,
       max: 1,
       noOfRequestsPerInstance: 100
-    }
+    },
+    volumes: {
+      dragonfly: {
+        storage: environmentStorage,
+        path: '/data'
+      }
+    },
+
+    sidecars: [
+      {
+        image: 'docker.dragonflydb.io/dragonflydb/dragonfly:latest',
+        name: 'dragonfly',
+        env: {}
+      }
+    ]
   });
 
   // MARK: Backstage

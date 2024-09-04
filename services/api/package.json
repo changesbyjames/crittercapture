@@ -20,7 +20,9 @@
     "npm": "^10.8.3",
     "oslo": "^1.2.1",
     "postgres": "^3.4.4",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "tsx": "^4.19.0",
+    "debug": "^4.3.6"
   },
   "scripts": {
     "start": "tsx src/index.ts",
@@ -32,8 +34,6 @@
   "devDependencies": {
     "@types/debug": "^4.1.12",
     "@types/node": "^22.5.1",
-    "debug": "^4.3.6",
-    "drizzle-kit": "^0.24.2",
-    "tsx": "^4.19.0"
+    "drizzle-kit": "^0.24.2"
   }
 }
