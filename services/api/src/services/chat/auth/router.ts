@@ -11,7 +11,7 @@ const TwitchRedirectResponse = z.object({
 });
 
 export default async function register(router: FastifyInstance) {
-  router.get('/admin/signin', async (request, reply) => {
+  router.get('/admin/signin', async (_, reply) => {
     const url = createSignInRequest('/admin/redirect', crypto.randomUUID());
     return reply.redirect(url);
   });
