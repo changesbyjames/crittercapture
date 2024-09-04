@@ -1,4 +1,4 @@
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
 import { key, useAPI, useLiveQuery } from '../query/hooks';
 
@@ -21,4 +21,16 @@ export const useSnapshot = (id: number) => {
   }, []);
 
   return result;
+};
+
+interface CreateCaptureFromSnapshotInput {
+  snapshotId: number;
+  images: string[];
+  name?: string;
+}
+export const useCreateCaptureFromSnapshot = () => {
+  const trpc = useAPI();
+  return useMutation({
+    mutationFn: (input: CreateCaptureFromSnapshotInput) => trpc.capture.snapshotToCapture.mutate(input)
+  });
 };

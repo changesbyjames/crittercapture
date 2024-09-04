@@ -28,6 +28,7 @@ export const snapshots = pgTable('snapshots', {
   images: json('images').$type<string[]>().default([]).notNull(),
   createdAt: timestamp('created_at').notNull(),
   status: snapshotStatusEnum('status').default('pending').notNull(),
+  captureId: integer('capture_id'),
 
   startCaptureAt: timestamp('start_capture_at').notNull(),
   endCaptureAt: timestamp('end_capture_at').notNull(),

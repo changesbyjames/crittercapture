@@ -1,28 +1,28 @@
 import { Save } from '@/components/assets/icons/Save';
 import { Note } from '@/components/containers/Note';
 import { Timestamp } from '@/components/text/Timestamp';
-import { useSnapshot } from '@/services/api/snapshot';
+import { useCreateCaptureFromSnapshot, useSnapshot } from '@/services/api/snapshot';
 import { Button } from '@critter/react/button/juicy';
 import { Form } from '@critter/react/forms/Form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FC, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router';
+import { FC, useState } from 'react';
+import { FieldErrors, useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router';
+import { toast } from 'sonner';
 import { z } from 'zod';
-import { Dock } from './controls/Dock';
+import { Dock } from '../../components/controls/Dock';
 import { Main } from './images/Main';
+import { SnapshotProps } from './Snapshot';
 
 const SaveAsCaptureFormFields = z.object({
-  name: z.string().min(1).max(20),
-  keep: z.array(z.string()),
+  name: z.string().optional(),
+  keep: z.array(z.string()).min(1),
   discard: z.array(z.string())
 });
 
 type SaveAsCaptureFormFields = z.infer<typeof SaveAsCaptureFormFields>;
 
-export const Editor: FC = () => {
-  const params = useParams<{ id: string }>();
-  const id = useMemo(() => Number(params.id), [params.id]);
+export const Editor: FC<SnapshotProps> = ({ id }) => {
   const snapshot = useSnapshot(id);
 
   const [mainImageIndex, setMainImageIndex] = useState<number | undefined>(
@@ -37,15 +37,41 @@ export const Editor: FC = () => {
     }
   });
 
-  const onSubmit = (data: SaveAsCaptureFormFields) => {
+  const navigate = useNavigate();
+
+  const createCapture = useCreateCaptureFromSnapshot();
+  const onSubmit = async (data: SaveAsCaptureFormFields) => {
     console.log(data);
+    const capture = await createCapture.mutateAsync({
+      snapshotId: id,
+      images: data.keep,
+      name: data.name
+    });
+    console.log(capture);
+    navigate(`/captures/${capture.id}`);
+  };
+
+  const onError = (errors: FieldErrors<SaveAsCaptureFormFields>) => {
+    if (errors.keep && errors.keep.type === 'too_small') {
+      toast(`Make sure you've selected at least one image to keep!`);
+      return;
+    }
+
+    toast(`Make sure you've filled everything in!`);
   };
 
   const keep = methods.watch('keep');
   const discard = methods.watch('discard');
 
+  const pending = snapshot.data.images.length - keep.length - discard.length;
+
   return (
-    <Form methods={methods} onSubmit={onSubmit} className="flex-1 bg-accent-100 p-8 flex flex-col gap-6 items-center">
+    <Form
+      methods={methods}
+      onSubmit={onSubmit}
+      onError={onError}
+      className="flex-1 bg-accent-100 p-8 flex flex-col gap-6 items-center"
+    >
       <nav className="w-full relative flex items-center justify-end">
         <Note className="w-fit z-10 absolute top-0 left-0 rounded-md min-w-96">
           <input
@@ -67,9 +93,13 @@ export const Editor: FC = () => {
         </Note>
 
         <div className="flex items-center gap-2">
-          <Button type="submit" shortcut="S">
+          <Button type="submit" shortcut="S" disabled={snapshot.data.status !== 'complete' || keep.length === 0}>
             <Save />
-            Save capture
+            {keep.length > 0
+              ? pending > 0
+                ? 'Discard the rest & save capture'
+                : 'Save capture'
+              : 'Choose images to keep to save'}
           </Button>
         </div>
       </nav>

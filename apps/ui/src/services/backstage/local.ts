@@ -8,8 +8,7 @@ export const config: DeepPartial<Config> = {
     apiBaseUrl: 'http://localhost:35523',
     imageResizeCDNUrl: 'https://crittercapture.club/cdn-cgi/image',
 
-    docsBaseUrl: 'https://raw.githubusercontent.com/changesbyjames/crittercapture/main/docs/',
-    docsMenu: 'menu.json'
+    docsUrl: 'https://github.com/changesbyjames/crittercapture/tree/main/docs'
   },
   flags: {}
 };

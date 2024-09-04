@@ -17,7 +17,8 @@ export const APIProvider: FC<PropsWithChildren> = ({ children }) => {
           // uses the httpSubscriptionLink for subscriptions
           condition: op => op.type === 'subscription',
           true: unstable_httpSubscriptionLink({
-            url
+            url,
+            connectionParams: async () => ({ Authorization: `Bearer ${await requestToken()}` })
           }),
           false: httpBatchLink({
             url,

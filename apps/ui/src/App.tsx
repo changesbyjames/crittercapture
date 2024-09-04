@@ -1,6 +1,7 @@
 import { Loading } from '@critter/react/loaders/Loading';
 import { Suspense } from 'react';
 import { RouterProvider } from 'react-router-dom';
+import { Toaster } from './components/feedback/Toaster';
 import { router } from './router';
 import { CritterAuthenticationProvider } from './services/authentication/CritterAuthenticationProvider';
 import { BackstageProvider } from './services/backstage/BackstageProvider';
@@ -18,6 +19,7 @@ export const App = () => {
               <CritterAuthenticationProvider>
                 <AppInsightsProvider>
                   <APIProvider>
+                    <Toaster />
                     <RouterProvider router={router} />
                   </APIProvider>
                 </AppInsightsProvider>

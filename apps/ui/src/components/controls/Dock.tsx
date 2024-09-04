@@ -4,7 +4,7 @@ import { Button } from '@critter/react/button/juicy';
 import { Spinner } from '@critter/react/loaders/Spinner';
 import { AnimatePresence } from 'framer-motion';
 import { FC, Suspense, useEffect } from 'react';
-import { Thumbnail } from '../images/Thumbnail';
+import { Thumbnail } from '../../pages/snapshots/images/Thumbnail';
 
 interface DockProps {
   images: string[];
@@ -96,7 +96,7 @@ export const Dock: FC<DockProps> = ({
           </Button>
         </div>
       )}
-      <div className="flex items-center gap-2 h-24 bg-accent-300 rounded-2xl px-4 py-4 w-fit max-w-full">
+      <div className="flex items-center gap-2 h-20 bg-accent-300 rounded-2xl px-4 py-4 w-fit max-w-full">
         <AnimatePresence initial={false}>
           {images.sort().map((image, index) => {
             return (

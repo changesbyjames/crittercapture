@@ -10,14 +10,16 @@ import { Menu, MenuItem } from '../components/menu/Menu';
 
 import { Docs } from '@/components/assets/icons/Docs';
 import { Wordmark } from '@/components/assets/logos/Wordmark';
+import { Variables } from '@/services/backstage/config';
 import { usePermissions } from '@/services/permissions/hooks';
+import { useVariable } from '@critter/backstage';
 import { Loading } from '@critter/react/loaders/Loading';
 import { Suspense } from 'react';
 import { Outlet } from 'react-router';
 
 export const Main = () => {
   const { editor } = usePermissions();
-
+  const docsUrl = useVariable<Variables>('docsUrl');
   return (
     <div className="h-screen min-h-screen max-h-screen w-screen flex flex-col">
       {!editor && (
@@ -40,30 +42,32 @@ export const Main = () => {
               <CritterCaptureClubLogo />
             </MenuItem>
             <MenuItem>
-              <Button className="w-full" disabled>
+              <Button className="w-full" disabled="Coming soon!">
                 <Binoculars />
                 All captures
               </Button>
             </MenuItem>
             <MenuItem>
-              <Button className="w-full" disabled>
+              <Button className="w-full" disabled="Coming soon!">
                 <Binoculars />
                 My captures
               </Button>
             </MenuItem>
             <MenuItem>
-              <Link to="/snapshots/pending" className="w-full">
+              <Link to="/snapshots/pending" className="w-full" disabled="Coming soon!">
                 <Picture />
                 Pending screenshots
               </Link>
             </MenuItem>
             <div className="flex-1" />
-            <MenuItem>
-              <Link to="/docs" className="w-full">
-                <Docs />
-                Documentation
-              </Link>
-            </MenuItem>
+            {docsUrl && (
+              <MenuItem>
+                <Link to={docsUrl} className="w-full">
+                  <Docs />
+                  Documentation
+                </Link>
+              </MenuItem>
+            )}
             <MenuItem>
               <Link to="/auth/signout" className="w-full">
                 <SignOut />

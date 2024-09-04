@@ -36,6 +36,13 @@
       "when": 1725141341266,
       "tag": "0004_warm_dragon_lord",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1725486029848,
+      "tag": "0005_regular_bruce_banner",
+      "breakpoints": true
     }
   ]
 }

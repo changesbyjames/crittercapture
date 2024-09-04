@@ -11,12 +11,10 @@ export const router = t.router;
 export const publicProcedure = t.procedure;
 
 export const procedure = t.procedure.use(async ({ ctx, next }) => {
-  const headers = ctx.req.headers;
-  const authorization = headers.authorization;
-  if (!authorization) {
+  if (!ctx.authorization) {
     throw new Error('Unauthorized');
   }
-  const [type, token] = authorization.split(' ');
+  const [type, token] = ctx.authorization.split(' ');
   if (type !== 'Bearer') {
     throw new Error('Unauthorized');
   }
@@ -26,7 +24,7 @@ export const procedure = t.procedure.use(async ({ ctx, next }) => {
   return withUser({ id: decoded.subject }, next);
 });
 
-export const moderatorProcedure = procedure.use(async ({ ctx, next }) => {
+export const moderatorProcedure = procedure.use(async ({ next }) => {
   const user = useUser();
   const permissions = await getPermissions(user.id);
   if (!permissions.moderator) {
@@ -35,7 +33,7 @@ export const moderatorProcedure = procedure.use(async ({ ctx, next }) => {
   return next();
 });
 
-export const adminProcedure = procedure.use(async ({ ctx, next }) => {
+export const adminProcedure = procedure.use(async ({ next }) => {
   const user = useUser();
   const permissions = await getPermissions(user.id);
   if (!permissions.administrate) {
@@ -44,7 +42,7 @@ export const adminProcedure = procedure.use(async ({ ctx, next }) => {
   return next();
 });
 
-export const editorProcedure = procedure.use(async ({ ctx, next }) => {
+export const editorProcedure = procedure.use(async ({ next }) => {
   const user = useUser();
   const permissions = await getPermissions(user.id);
   if (!permissions.editor) {
@@ -54,12 +52,10 @@ export const editorProcedure = procedure.use(async ({ ctx, next }) => {
 });
 
 export const integrationProcedure = t.procedure.use(async ({ ctx, next }) => {
-  const headers = ctx.req.headers;
-  const authorization = headers.authorization;
-  if (!authorization) {
+  if (!ctx.authorization) {
     throw new Error('Unauthorized');
   }
-  const [type, token] = authorization.split(' ');
+  const [type, token] = ctx.authorization.split(' ');
   if (type !== 'Basic') {
     throw new Error('Unauthorized');
   }
