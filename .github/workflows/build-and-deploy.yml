@@ -15,7 +15,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write
 
     steps:
       - name: Checkout repository
@@ -50,7 +49,7 @@ jobs:
 
     permissions:
       contents: read
-      packages: write
+      packages: write2
 
     steps:
       - name: Checkout repository
@@ -119,6 +118,9 @@ jobs:
     needs:
       - build_ui
       - build_api
+
+    permissions:
+      id-token: write
 
     environment: production
     steps:
