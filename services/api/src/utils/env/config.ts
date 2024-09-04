@@ -5,12 +5,17 @@ import { initialise } from '../../db/db.js';
 export const config = z.object({
   TWITCH_CLIENT_ID: z.string(),
   TWITCH_CLIENT_SECRET: z.string(),
+  TWITCH_USERNAME: z.string(),
+
+  NODE_ENV: z.enum(['development', 'production']).default('development'),
+  HOST: z.string(),
+  PORT: z.coerce.number(),
+
   REDIS_HOST: z.string(),
   REDIS_PORT: z.string(),
   REDIS_PASSWORD: z.string().optional(),
   REDIS_SSL: z.coerce.boolean().default(false),
-  HOST: z.string(),
-  PORT: z.coerce.number(),
+
   POSTGRES_HOST: z.string(),
   POSTGRES_USER: z.string(),
   POSTGRES_PASSWORD: z.string(),
@@ -19,8 +24,7 @@ export const config = z.object({
 
   UI_URL: z.string(),
 
-  JWT_SECRET: z.string().transform(value => Buffer.from(value, 'hex')),
-  NODE_ENV: z.enum(['development', 'production']).default('development')
+  JWT_SECRET: z.string().transform(value => Buffer.from(value, 'hex'))
 });
 
 export const services = async (variables: z.infer<typeof config>) => {

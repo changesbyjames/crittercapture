@@ -3,7 +3,7 @@ import { TimeSpan } from 'oslo';
 import { createJWT } from 'oslo/jwt';
 import { z } from 'zod';
 import { useEnvironment } from '../../utils/env/env.js';
-import { createSignInRequest, exchangeCodeForToken, getUserInformation, validateToken } from '../chat/auth/auth.js';
+import { createSignInRequest, exchangeCodeForToken, getUserInformation, validateToken } from './auth.js';
 
 const TwitchRedirectResponse = z.object({
   code: z.string(),

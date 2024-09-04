@@ -184,7 +184,7 @@ export = async () => {
     ...website,
     env: {
       variables: {
-        apiBaseUrl: api.defaultUrl,
+        apiBaseUrl: config.get('api-url') ?? api.defaultUrl,
         appInsightsConnectionString: appInsights.connectionString
       },
       flags: {}

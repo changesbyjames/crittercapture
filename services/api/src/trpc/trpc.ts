@@ -1,8 +1,8 @@
 import { initTRPC } from '@trpc/server';
 import { eq } from 'drizzle-orm';
 import { validateJWT } from 'oslo/jwt';
-import { feeds } from '../db/schema/index.js';
-import { withUser } from '../utils/env/env.js';
+import { feeds, roles } from '../db/schema/index.js';
+import { useUser, withUser } from '../utils/env/env.js';
 import { createContext } from './context.js';
 
 const t = initTRPC.context<typeof createContext>().create();
@@ -23,6 +23,31 @@ export const procedure = t.procedure.use(async ({ ctx, next }) => {
   const decoded = await validateJWT('HS256', ctx.variables.JWT_SECRET, token);
   if (!decoded.subject) throw new Error('Unauthorized');
   return withUser({ id: decoded.subject }, next);
+});
+
+export const moderatorProcedure = procedure.use(async ({ ctx, next }) => {
+  const user = useUser();
+  const [role] = await ctx.db.select().from(roles).where(eq(roles.username, user.id));
+  if (role?.role !== 'mod' && role?.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+  return next();
+});
+
+export const adminProcedure = procedure.use(async ({ ctx, next }) => {
+  const user = useUser();
+  const [role] = await ctx.db.select().from(roles).where(eq(roles.username, user.id));
+  if (role?.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+  return next();
+});
+
+export const editorProcedure = procedure.use(async ({ ctx, next }) => {
+  const user = useUser();
+  const [role] = await ctx.db.select().from(roles).where(eq(roles.username, user.id));
+  if (!role?.role) throw new Error('Unauthorized');
+  return next();
 });
 
 export const integrationProcedure = t.procedure.use(async ({ ctx, next }) => {

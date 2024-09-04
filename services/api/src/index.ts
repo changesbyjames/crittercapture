@@ -9,6 +9,7 @@ import { start } from './services/chat/index.js';
 import { createContext } from './trpc/context.js';
 
 import authRouter from './services/auth/router.js';
+import adminRouter from './services/chat/auth/router.js';
 // Export type router type signature,
 // NOT the router itself.
 export type AppRouter = typeof router;
@@ -23,7 +24,7 @@ import { createEnvironment, withEnvironment } from './utils/env/env.js';
       const server = fastify(options);
       await server.register(cors);
       await server.register(authRouter);
-
+      await server.register(adminRouter);
       await server.register(fastifyTRPCPlugin, {
         trpcOptions: {
           router,

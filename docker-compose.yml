@@ -27,8 +27,8 @@ services:
     # https://docs.docker.com/compose/compose-file/compose-file-v3/#network_mode
     # network_mode: "host"
     volumes:
-      - dragonflydata:/data
+      - dragonflydata2:/data
 
 volumes:
-  dragonflydata:
+  dragonflydata2:
   pgfdata:

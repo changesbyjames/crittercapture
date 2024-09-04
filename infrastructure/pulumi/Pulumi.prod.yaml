@@ -8,3 +8,4 @@ config:
     secure: AAABAG0Qc+H+3ZiC/BAz9AsJRBt8X4J1IJ+CwlpQMoqGGxehsbBxq6vAPwaY+FuEk1y005zygnwBljatENg=
   crittercapture:twitch-username: pollinatorcam
   crittercapture:ui-url: https://www.crittercapture.club
+  crittercapture:api-url: https://api.crittercapture.club

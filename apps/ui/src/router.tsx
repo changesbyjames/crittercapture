@@ -16,6 +16,7 @@ import { SignIn } from './pages/authentication/SignIn';
 import { SignOut } from './pages/authentication/SignOut';
 import { SignOutRedirect } from './pages/authentication/SignOutRedirect';
 import { useSnapshot } from './services/api/snapshot';
+import { useAPI } from './services/query/hooks';
 
 const auth: RouteObject = {
   path: 'auth',
@@ -357,6 +358,18 @@ const Thumbnail: FC<{ url: string; selected: boolean; onClick: () => void; keep:
   );
 };
 
+const Status: FC = () => {
+  const api = useAPI();
+  const response = useSuspenseQuery({
+    queryKey: ['status'],
+    queryFn: () => {
+      return api.chat.status.query();
+    }
+  });
+
+  return <div>{JSON.stringify(response.data)}</div>;
+};
+
 export const router = createBrowserRouter([
   {
     element: <Authenticated />,
@@ -364,6 +377,10 @@ export const router = createBrowserRouter([
       {
         element: <Main />,
         children: [
+          {
+            path: '/status',
+            element: <Status />
+          },
           {
             path: '/snapshots/:id',
             element: <Home />
