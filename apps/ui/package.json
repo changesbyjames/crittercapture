@@ -28,6 +28,7 @@
     "react-dom": "^18.3.1",
     "react-error-boundary": "^4.0.13",
     "react-hook-form": "^7.53.0",
+    "react-markdown": "^9.0.1",
     "react-router": "^6.26.1",
     "react-router-dom": "^6.26.1",
     "vite-plugin-info": "^0.4.1",
@@ -36,6 +37,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
+    "@tailwindcss/typography": "^0.5.15",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

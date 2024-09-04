@@ -8,6 +8,7 @@ import { CritterCaptureClubLogo } from '../components/assets/logos/CritterCaptur
 
 import { Menu, MenuItem } from '../components/menu/Menu';
 
+import { Docs } from '@/components/assets/icons/Docs';
 import { Wordmark } from '@/components/assets/logos/Wordmark';
 import { usePermissions } from '@/services/permissions/hooks';
 import { Loading } from '@critter/react/loaders/Loading';
@@ -57,6 +58,12 @@ export const Main = () => {
               </Link>
             </MenuItem>
             <div className="flex-1" />
+            <MenuItem>
+              <Link to="/docs" className="w-full">
+                <Docs />
+                Documentation
+              </Link>
+            </MenuItem>
             <MenuItem>
               <Link to="/auth/signout" className="w-full">
                 <SignOut />
