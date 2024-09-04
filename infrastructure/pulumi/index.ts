@@ -158,7 +158,11 @@ export = async () => {
       TWITCH_CLIENT_SECRET: config.require('twitch-client-secret'),
       TWITCH_USERNAME: config.require('twitch-username'),
       UI_URL: `https://${config.require('ui-domain')}`,
-      API_URL: `https://${config.require('api-domain')}`
+      API_URL: `https://${config.require('api-domain')}`,
+
+      STORAGE_ACCOUNT_NAME: storage.name,
+      STORAGE_ACCOUNT_KEY: key,
+      CONTAINER_NAME: container.name
     },
     image: config.require('api-image'),
     scale: {
@@ -193,6 +197,7 @@ export = async () => {
     env: {
       variables: {
         apiBaseUrl: `https://${config.require('api-domain')}`,
+        imageResizeCDNUrl: config.require('image-resize-cdn-url'),
         appInsightsConnectionString: appInsights.connectionString
       },
       flags: {}

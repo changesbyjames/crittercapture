@@ -10,3 +10,4 @@ config:
   crittercapture:ui-domain: www.crittercapture.club
   crittercapture:api-domain: api.crittercapture.club
   crittercapture:api-certificate-name: api.crittercapture.club-critterc-240904131143
+  crittercapture:image-resize-cdn-url: https://crittercapture.club/cdn-cgi/image
