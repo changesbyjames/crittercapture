@@ -11,7 +11,7 @@ export const Timestamp: FC<TimestampProps> = ({ date }) => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger type="button">
           <span>{formatInTimeZone(date, 'America/Chicago', 'PP p')}</span>
         </TooltipTrigger>
         <TooltipContent>

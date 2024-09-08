@@ -3,6 +3,7 @@ import capture from './capture.js';
 import chat from './chat.js';
 import feed from './feed.js';
 import me from './me.js';
+import observation from './observation.js';
 import snapshot from './snapshot.js';
 
 export default router({
@@ -10,5 +11,6 @@ export default router({
   feed,
   snapshot,
   capture,
-  chat
+  chat,
+  observation
 });

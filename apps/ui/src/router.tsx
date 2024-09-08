@@ -7,7 +7,7 @@ import { SignIn } from './pages/authentication/SignIn';
 import { SignOut } from './pages/authentication/SignOut';
 import { SignOutRedirect } from './pages/authentication/SignOutRedirect';
 import { Capture } from './pages/captures/Capture';
-import { Snapshot } from './pages/snapshots/Snapshot';
+import { Snapshot, SnapshotRedirect } from './pages/snapshots/Snapshot';
 
 const auth: RouteObject = {
   path: 'auth',
@@ -41,6 +41,10 @@ export const router = createBrowserRouter([
           {
             path: '/status',
             element: <Status />
+          },
+          {
+            path: '/s/:id',
+            element: <SnapshotRedirect />
           },
           {
             path: '/snapshots/:id',

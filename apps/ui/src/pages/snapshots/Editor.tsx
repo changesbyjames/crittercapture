@@ -1,5 +1,8 @@
 import { Save } from '@/components/assets/icons/Save';
+import { getIconForFamily } from '@/components/assets/icons/taxa';
 import { Note } from '@/components/containers/Note';
+import { ObservationEntry } from '@/components/controls/ObservationEntry';
+import { INatTaxaInput } from '@/components/inputs/INatTaxaInput';
 import { Timestamp } from '@/components/text/Timestamp';
 import { useCreateCaptureFromSnapshot, useSnapshot } from '@/services/api/snapshot';
 import { Button } from '@critter/react/button/juicy';
@@ -17,7 +20,16 @@ import { SnapshotProps } from './Snapshot';
 const SaveAsCaptureFormFields = z.object({
   name: z.string().optional(),
   keep: z.array(z.string()).min(1),
-  discard: z.array(z.string())
+  discard: z.array(z.string()),
+
+  taxa: z.array(
+    z.object({
+      id: z.number(),
+      scientific: z.string(),
+      family: z.string().optional(),
+      name: z.string()
+    })
+  )
 });
 
 type SaveAsCaptureFormFields = z.infer<typeof SaveAsCaptureFormFields>;
@@ -33,7 +45,8 @@ export const Editor: FC<SnapshotProps> = ({ id }) => {
     resolver: zodResolver(SaveAsCaptureFormFields),
     defaultValues: {
       keep: [],
-      discard: []
+      discard: [],
+      taxa: []
     }
   });
 
@@ -62,6 +75,7 @@ export const Editor: FC<SnapshotProps> = ({ id }) => {
 
   const keep = methods.watch('keep');
   const discard = methods.watch('discard');
+  const taxa = methods.watch('taxa');
 
   const pending = snapshot.data.images.length - keep.length - discard.length;
 
@@ -90,6 +104,29 @@ export const Editor: FC<SnapshotProps> = ({ id }) => {
               <Timestamp date={new Date(snapshot.data.createdAt)} />
             </strong>
           </p>
+          {taxa.map(taxon => (
+            <ObservationEntry
+              key={taxon.id}
+              id={taxon.name}
+              iNatId={taxon.id}
+              remove={() => {
+                methods.setValue(
+                  'taxa',
+                  taxa.filter(t => t.id !== taxon.id),
+                  { shouldDirty: true }
+                );
+              }}
+            >
+              {taxon.family && getIconForFamily(taxon.family)}
+              {taxon.name}
+            </ObservationEntry>
+          ))}
+          <INatTaxaInput
+            placeholder="Search for critter or plant"
+            onSelect={taxon => {
+              methods.setValue('taxa', [...methods.getValues('taxa'), taxon]);
+            }}
+          />
         </Note>
 
         <div className="flex items-center gap-2">

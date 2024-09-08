@@ -9,6 +9,11 @@ export interface SnapshotProps {
   id: number;
 }
 
+export const SnapshotRedirect: FC = () => {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/snapshots/${id}`} />;
+};
+
 export const Snapshot: FC = () => {
   const { editor } = usePermissions();
   const params = useParams<{ id: string }>();
