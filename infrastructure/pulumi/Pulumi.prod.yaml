@@ -7,7 +7,7 @@ config:
   crittercapture:twitch-client-secret:
     secure: AAABAG0Qc+H+3ZiC/BAz9AsJRBt8X4J1IJ+CwlpQMoqGGxehsbBxq6vAPwaY+FuEk1y005zygnwBljatENg=
   crittercapture:twitch-username: pollinatorcam
-  crittercapture:ui-domain: www.crittercapture.club
+  crittercapture:ui-domain: crittercapture.club
   crittercapture:api-domain: api.crittercapture.club
   crittercapture:api-certificate-name: api.crittercapture.club-critterc-240904131143
   crittercapture:image-resize-cdn-url: https://crittercapture.club/cdn-cgi/image

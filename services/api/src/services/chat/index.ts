@@ -19,13 +19,8 @@ const handler: Record<string, (chat: ChatClient, channel: string, user: string, 
       return;
     }
 
-    const [_, duration, rewind] = message.split(' ');
-    if (isNaN(Number(duration)) || isNaN(Number(rewind))) {
-      chat.say(channel, `@${user} Invalid duration or rewind. Please use !capture <duration> <rewind>`);
-      return;
-    }
-    const request = await createSnapshotRequest('twitch', user, Number(duration), Number(rewind));
-    chat.say(channel, `@${user} Critter captured! ${env.variables.UI_URL}/snapshots/${request.id}`);
+    const request = await createSnapshotRequest('twitch', user, 15, 5);
+    chat.say(channel, `@${user} Critter captured! ${env.variables.UI_URL}/s/${request.id}`);
   }
 };
 
