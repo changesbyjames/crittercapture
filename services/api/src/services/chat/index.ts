@@ -11,7 +11,7 @@ interface Status {
 }
 
 const handler: Record<string, (chat: ChatClient, channel: string, user: string, message: string) => Promise<void>> = {
-  capture: async (chat: ChatClient, channel: string, user: string, message: string) => {
+  capture: async (chat: ChatClient, channel: string, user: string) => {
     const env = useEnvironment();
     const permissions = await getPermissions(user);
 
