@@ -76,7 +76,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: |
-            suffix=-${{ github.run_id }}}-ingest
+            suffix=-${{ github.run_id }}-ingest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5

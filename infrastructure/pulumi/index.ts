@@ -192,7 +192,7 @@ export = async () => {
       : undefined
   });
 
-  const ingest = new API(`${id}-tw-ingest`, {
+  const ingest = new API(`${id}-twi`, {
     name: 'ingest',
     resourceGroupName: group.name,
     environmentName: environment.name,
