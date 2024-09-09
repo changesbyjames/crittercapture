@@ -161,6 +161,8 @@ export = async () => {
       UI_URL: `https://${config.require('ui-domain')}`,
       API_URL: `https://${config.require('api-domain')}`,
 
+      CHANNELS_TO_LISTEN_TO: 'alveussanctuary,alveusgg,strangecyan',
+
       STORAGE_ACCOUNT_NAME: storage.name,
       STORAGE_ACCOUNT_KEY: key,
       CONTAINER_NAME: container.name
