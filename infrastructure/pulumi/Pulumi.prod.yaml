@@ -11,5 +11,7 @@ config:
   crittercapture:twitch-client-id: itag8f5m4r3ynbtrz933d7qh7c6ffq
   crittercapture:twitch-client-secret:
     secure: AAABAG0Qc+H+3ZiC/BAz9AsJRBt8X4J1IJ+CwlpQMoqGGxehsbBxq6vAPwaY+FuEk1y005zygnwBljatENg=
+  crittercapture:twitch-feed-key:
+    secure: AAABADkxjQzg4f8cClzRfQ2UKueEjyiKlHphid8rn9pW/Zkqv+vNiq+3sE+/e7FbEQI8/TTlnXR7zwbDWQh2vA==
   crittercapture:twitch-username: pollinatorcam
   crittercapture:ui-domain: crittercapture.club
