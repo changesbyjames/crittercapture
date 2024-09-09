@@ -143,6 +143,7 @@ export = async () => {
     port: 3000,
     env: {
       HOST: '0.0.0.0',
+      PORT: '3000',
 
       POSTGRES_HOST: server.host,
       POSTGRES_USER: server.administratorUsername,
@@ -189,6 +190,32 @@ export = async () => {
           certificateName: config.require('api-certificate-name')
         }
       : undefined
+  });
+
+  const ingest = new API(`${id}-tw-ingest`, {
+    name: 'ingest',
+    resourceGroupName: group.name,
+    environmentName: environment.name,
+    env: {
+      STREAM_URL: 'https://twitch.tv/alveussanctuary',
+      TWITCH_API_TOKEN: config.require('twitch-api-token'),
+      FEED_ID: 'twitch',
+      FEED_KEY: config.require('twitch-feed-key'),
+      API_URL: `https://${config.require('api-domain')}`,
+      DATA_DIR: '/data'
+    },
+    image: config.require('ingest-image'),
+    scale: {
+      min: 1,
+      max: 1,
+      noOfRequestsPerInstance: 100
+    },
+    volumes: {
+      data: {
+        storage: environmentStorage,
+        path: '/data'
+      }
+    }
   });
 
   // MARK: Backstage

@@ -118,6 +118,7 @@ jobs:
     needs:
       - build_ui
       - build_api
+      - build_ingest
 
     permissions:
       id-token: write
@@ -169,6 +170,7 @@ jobs:
           config-map: |
             {
               "api-image": { value: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.run_id }}-api", secret: false },
+              "ingest-image": { value: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.run_id }}-ingest", secret: false }
             }
         env:
           ARM_USE_OIDC: true

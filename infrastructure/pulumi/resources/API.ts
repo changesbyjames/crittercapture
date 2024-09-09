@@ -42,7 +42,7 @@ interface APIArgs {
 
   vaults?: Vault[];
 
-  port: number;
+  port?: number;
   scale: {
     min: number;
     max: number;
@@ -175,11 +175,15 @@ export class API extends ComponentResource {
           type: 'SystemAssigned'
         },
         configuration: {
-          ingress: {
-            external: true,
-            targetPort: args.port,
-            customDomains: getCustomDomains(subscriptionId, args.resourceGroupName, environment.name, args.domain)
-          },
+          ingress: args.port
+            ? {
+                external: true,
+                targetPort: args.port,
+                customDomains: getCustomDomains(subscriptionId, args.resourceGroupName, environment.name, args.domain)
+              }
+            : {
+                external: false
+              },
           registries,
           secrets
         },
@@ -203,10 +207,7 @@ export class API extends ComponentResource {
                   name: 'NODE_ENV',
                   value: 'production'
                 },
-                {
-                  name: 'PORT',
-                  value: args.port.toString()
-                }
+                ...(args.port ? [{ name: 'PORT', value: args.port.toString() }] : [])
               ],
               volumeMounts: getVolumeMounts(args.volumes)
             },
