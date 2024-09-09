@@ -9,6 +9,7 @@
     "@azure/storage-blob": "^12.24.0",
     "@critter/node": "workspace:*",
     "@fastify/cors": "^9.0.1",
+    "@inquirer/prompts": "^5.5.0",
     "@trpc/client": "11.0.0-rc.490",
     "@trpc/server": "11.0.0-rc.490",
     "@twurple/auth": "^7.1.0",
@@ -27,7 +28,10 @@
   },
   "scripts": {
     "start": "tsx src/index.ts",
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "setup:api": "tsx src/scripts/api.ts",
+    "setup:feed": "tsx src/scripts/feed.ts",
+    "setup:jwt": "tsx src/scripts/jwt.ts"
   },
   "keywords": [],
   "author": "",

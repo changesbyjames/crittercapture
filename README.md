@@ -41,7 +41,7 @@ Currently, we don't support the Azurite emulator for local development, so you'l
 
 - `JWT_SECRET`
 
-This is the secret that the API uses to sign the JWTs. For local development, you can stick to the default value but know that it makes the token insecure.
+This is the secret that the API uses to sign the JWTs. For local development, you can stick to the default value but know that it makes the token insecure. If you want to generate a new secret, you can run `pnpm --filter=@critter/api setup:jwt` to generate a new secret.
 
 - `COMMAND_PREFIX`
 
@@ -80,10 +80,31 @@ You can now make changes to both the UI and API and submit a PR for it!
 
 ### Seeding the database
 
-You will need to seed the database with the correct data.
-
-The most important thing to to set a role for your account so you can access the UI. Create an entry in the `Roles` table, add your username and set yourself as an Admin. (This will be scripted soon.)
+You will need to seed the database with the correct data. To add yourself as an admin, run `pnpm --filter=@critter/api setup:api` and follow the prompts.
 
 ### Running the chat service
 
 You will need to authenticate the bot in order for it to connect to Twitch. When running both the UI & the API, go to http://localhost:5173/status and authenticate the bot with the correct credentials.
+
+### Running the ingest service
+
+At this point, everything is set up to authenticate the bot and connect to Twitch, communicate with the database and use the API but there's one more thing we need to setup before you can actually start capturing clips.
+
+To bootstrap a local feed registration, run `pnpm --filter=@critter/api setup:feed` to create the feed and get the key.
+
+Copy the `services/ingest/.env.example` file to `services/api/.env` and set the `FEED_ID` and `FEED_KEY` environment variables to the values you get from the feed setup.
+
+If your feed is a twitch channel, as the default is, you'll need to get a twitch token for streamlink to use otherwise you will run into ads and other authentication issues. You can find out how to do this [here](https://streamlink.github.io/cli/plugins/twitch.html#authentication).
+
+Your .env file should look something like this:
+
+```
+FEED_ID=twitch
+FEED_KEY=running-locally-key
+STREAM_URL=https://twitch.tv/alveussanctuary
+TWITCH_API_TOKEN=<your token here>
+API_URL=http://localhost:35523
+DATA_DIR=/tmp/data
+```
+
+You can now start the ingest service with `pnpm --filter=@critter/ingest start` and it will automatically connect to twitch and start capturing clips.
