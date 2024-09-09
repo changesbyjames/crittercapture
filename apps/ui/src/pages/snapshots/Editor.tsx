@@ -2,13 +2,14 @@ import { Save } from '@/components/assets/icons/Save';
 import { getIconForFamily } from '@/components/assets/icons/taxa';
 import { Note } from '@/components/containers/Note';
 import { ObservationEntry } from '@/components/controls/ObservationEntry';
+import { BoundingBox, BoundingBoxInput } from '@/components/inputs/BoundingBoxInput';
 import { INatTaxaInput } from '@/components/inputs/INatTaxaInput';
 import { Timestamp } from '@/components/text/Timestamp';
 import { useCreateCaptureFromSnapshot, useSnapshot } from '@/services/api/snapshot';
 import { Button } from '@critter/react/button/juicy';
 import { Form } from '@critter/react/forms/Form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FC, useState } from 'react';
+import { FC, useCallback, useState } from 'react';
 import { FieldErrors, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -29,6 +30,16 @@ const SaveAsCaptureFormFields = z.object({
       family: z.string().optional(),
       name: z.string()
     })
+  ),
+
+  boundingBoxes: z.array(
+    z.object({
+      id: z.string(),
+      x: z.number(),
+      y: z.number(),
+      width: z.number(),
+      height: z.number()
+    })
   )
 });
 
@@ -46,7 +57,8 @@ export const Editor: FC<SnapshotProps> = ({ id }) => {
     defaultValues: {
       keep: [],
       discard: [],
-      taxa: []
+      taxa: [],
+      boundingBoxes: []
     }
   });
 
@@ -76,6 +88,19 @@ export const Editor: FC<SnapshotProps> = ({ id }) => {
   const keep = methods.watch('keep');
   const discard = methods.watch('discard');
   const taxa = methods.watch('taxa');
+  const boundingBoxes = methods.watch('boundingBoxes');
+  const setBoundingBoxes = useCallback(
+    (valueOrFunction: BoundingBox[] | ((value: BoundingBox[]) => BoundingBox[])) => {
+      if (typeof valueOrFunction === 'function') {
+        methods.setValue('boundingBoxes', valueOrFunction(methods.getValues('boundingBoxes')), {
+          shouldDirty: true
+        });
+      } else {
+        methods.setValue('boundingBoxes', valueOrFunction, { shouldDirty: true });
+      }
+    },
+    [methods]
+  );
 
   const pending = snapshot.data.images.length - keep.length - discard.length;
 
@@ -143,7 +168,9 @@ export const Editor: FC<SnapshotProps> = ({ id }) => {
       <div className="w-full relative flex-1">
         <div className="h-full flex items-center justify-center">
           {mainImageIndex !== undefined && (
-            <Main key={snapshot.data.images[mainImageIndex]} url={snapshot.data.images[mainImageIndex]} />
+            <Main key={snapshot.data.images[mainImageIndex]} url={snapshot.data.images[mainImageIndex]}>
+              <BoundingBoxInput value={boundingBoxes} onChange={setBoundingBoxes} />
+            </Main>
           )}
         </div>
       </div>

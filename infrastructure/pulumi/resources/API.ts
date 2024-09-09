@@ -181,9 +181,7 @@ export class API extends ComponentResource {
                 targetPort: args.port,
                 customDomains: getCustomDomains(subscriptionId, args.resourceGroupName, environment.name, args.domain)
               }
-            : {
-                external: false
-              },
+            : undefined,
           registries,
           secrets
         },
