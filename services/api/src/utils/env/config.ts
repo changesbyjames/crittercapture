@@ -30,6 +30,8 @@ export const config = z.object({
   STORAGE_ACCOUNT_KEY: z.string(),
   CONTAINER_NAME: z.string(),
 
+  CHANNELS_TO_LISTEN_TO: z.string().transform(value => value.split(',')),
+
   COMMAND_PREFIX: z.string().default('!'),
   JWT_SECRET: z.string().transform(value => Buffer.from(value, 'hex'))
 });

@@ -26,7 +26,7 @@ const handler: Record<string, (chat: ChatClient, channel: string, user: string, 
 
 export const status: Status = {
   status: 'pending',
-  channels: ['strangecyan', 'alveusgg'],
+  channels: [],
   commands: Object.keys(handler)
 };
 
@@ -47,7 +47,8 @@ export const start = async () => {
   auth.onRefresh((_, token) => saveToken(token));
   await auth.addUserForToken(token, ['chat']);
 
-  const chat = new ChatClient({ authProvider: auth, channels: status.channels });
+  const chat = new ChatClient({ authProvider: auth, channels: env.variables.CHANNELS_TO_LISTEN_TO });
+  status.channels = env.variables.CHANNELS_TO_LISTEN_TO;
   chat.onConnect(() => (status.status = 'online'));
 
   chat.onDisconnect(() => (status.status = 'offline'));
