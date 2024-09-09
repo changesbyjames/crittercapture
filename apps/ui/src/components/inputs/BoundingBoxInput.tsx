@@ -1,4 +1,5 @@
 import { FC, useEffect, useRef } from 'react';
+import { Corner } from '../assets/icons/Corner';
 
 export interface InputProps<T> {
   onChange: (value: T | ((value: T) => T)) => void;
@@ -24,6 +25,7 @@ interface BoundingBoxWorkingCopy extends BoundingBox {
       y: number;
     };
   };
+  state: 'drawing' | 'editing';
 }
 
 const getStyleForBox = (box: BoundingBox) => {
@@ -45,8 +47,12 @@ const applyBoundingBoxToElement = (element: HTMLDivElement, box: BoundingBox) =>
   Object.assign(element.style, style);
 };
 
-const clickIsInsideBox = (box: BoundingBox, x: number, y: number) => {
+const isInsideBox = (box: BoundingBox, x: number, y: number) => {
   return x >= box.x && x <= box.x + box.width && y >= box.y && y <= box.y + box.height;
+};
+
+const findBox = (boxes: BoundingBox[], x: number, y: number) => {
+  return boxes.find(box => isInsideBox(box, x, y));
 };
 
 const updateBoxPositionFromMousePosition = (box: BoundingBoxWorkingCopy, x: number, y: number) => {
@@ -94,7 +100,6 @@ export const BoundingBoxInput: FC<InputProps<BoundingBox[]>> = ({ onChange, valu
       'mousedown',
       e => {
         if (pending.current) {
-          console.log('Already have a pending box, ignoring click');
           return;
         }
         const rect = node.getBoundingClientRect();
@@ -105,7 +110,7 @@ export const BoundingBoxInput: FC<InputProps<BoundingBox[]>> = ({ onChange, valu
         };
 
         try {
-          const box = value.reverse().find(box => clickIsInsideBox(box, origin.x, origin.y));
+          const box = findBox(value, origin.x, origin.y);
           if (box) {
             // Where the click is in relation to the box
             const inner = {
@@ -115,9 +120,12 @@ export const BoundingBoxInput: FC<InputProps<BoundingBox[]>> = ({ onChange, valu
 
             pending.current = {
               ...box,
-              origin: { canvas: origin, inner }
+              origin: { canvas: origin, inner },
+              state: 'editing'
             };
 
+            // As the box actually exists in `value`, we need to make it invisible as we transition to editing mode
+            // and use the pending box to show the user where the box will be if they continue to drag.
             const clickedBoxElement = node.querySelector(`[data-id="${box.id}"]`) as HTMLDivElement | null;
             if (clickedBoxElement) clickedBoxElement.style.opacity = '0';
             return;
@@ -131,7 +139,8 @@ export const BoundingBoxInput: FC<InputProps<BoundingBox[]>> = ({ onChange, valu
             height: 0,
             origin: {
               canvas: origin
-            }
+            },
+            state: 'drawing'
           };
         } finally {
           applyBoundingBoxToElement(pendingBoxRef.current!, pending.current!);
@@ -155,10 +164,7 @@ export const BoundingBoxInput: FC<InputProps<BoundingBox[]>> = ({ onChange, valu
             y: Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height))
           };
 
-          // Check if the inner is in any of the corners, if it is
-          // go into resize mode from a corner origin.
-
-          if (box.origin.inner) {
+          if (box.origin.inner && box.state === 'editing') {
             // If it was grabbed from the inside, then we want to update the position.
             pending.current = updateBoxPositionFromMousePosition(box, point.x, point.y);
             return;
@@ -176,22 +182,25 @@ export const BoundingBoxInput: FC<InputProps<BoundingBox[]>> = ({ onChange, valu
     node.addEventListener(
       'mouseup',
       () => {
-        console.log('Mouse up');
-        console.log(pending.current);
-        if (!pending.current) return;
-        if (pending.current.width < 0.01 || pending.current.height < 0.01) {
-          pending.current = null;
-          return;
-        }
+        try {
+          if (!pending.current) return;
+          if (pending.current.width < 0.05 || pending.current.height < 0.05) {
+            // If the box is too small, we should remove it.
+            return;
+          }
 
-        onChange(value => {
-          if (!value) return [pending.current!];
-          return [...value.filter(box => box.id !== pending.current!.id), pending.current!];
-        });
-        applyBoundingBoxToElement(pendingBoxRef.current!, pending.current!);
-        const clickedBoxElement = node.querySelector(`[data-id="${pending.current!.id}"]`) as HTMLDivElement | null;
-        if (clickedBoxElement) clickedBoxElement.style.opacity = '1';
-        pending.current = null;
+          onChange(value => {
+            if (!value) return [pending.current!];
+            return [...value.filter(box => box.id !== pending.current!.id), pending.current!];
+          });
+        } finally {
+          const clickedBoxElement = node.querySelector<HTMLDivElement>(`[data-id="${pending.current!.id}"]`);
+          if (clickedBoxElement) {
+            clickedBoxElement.style.opacity = '1';
+          }
+          pending.current = null;
+          applyBoundingBoxToElement(pendingBoxRef.current!, pending.current!);
+        }
       },
       { signal: abortController.signal }
     );
@@ -201,14 +210,35 @@ export const BoundingBoxInput: FC<InputProps<BoundingBox[]>> = ({ onChange, valu
 
   return (
     <div ref={ref} className="absolute inset-0 z-40">
-      <div ref={pendingBoxRef} className="absolute bg-red-50"></div>
+      <div ref={pendingBoxRef} className="absolute bg-white bg-opacity-25 shadow-md">
+        <Corner className="absolute -top-1 -left-1" />
+        <Corner className="absolute -top-1 -right-1 rotate-90" />
+        <Corner className="absolute -bottom-1 -left-1 -rotate-90" />
+        <Corner className="absolute -bottom-1 -right-1 rotate-180" />
+      </div>
       {value.map(box => (
         <div
           key={`${box.id}-${box.x}-${box.y}`}
           data-id={box.id}
           style={getStyleForBox(box)}
-          className="absolute bg-red-500"
-        ></div>
+          className="absolute bg-white bg-opacity-25"
+        >
+          <button
+            type="button"
+            className="bg-white bg-opacity-15"
+            onClick={e => {
+              onChange(value => value.filter(b => b.id !== box.id));
+              e.stopPropagation();
+              e.preventDefault();
+            }}
+          >
+            Remove
+          </button>
+          <Corner className="absolute -top-1 -left-1 shadow-lg" />
+          <Corner className="absolute -top-1 -right-1 rotate-90 shadow-lg" />
+          <Corner className="absolute -bottom-1 -left-1 -rotate-90 shadow-lg" />
+          <Corner className="absolute -bottom-1 -right-1 rotate-180 shadow-lg" />
+        </div>
       ))}
     </div>
   );

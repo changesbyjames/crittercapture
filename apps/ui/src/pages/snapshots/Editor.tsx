@@ -6,6 +6,8 @@ import { BoundingBox, BoundingBoxInput } from '@/components/inputs/BoundingBoxIn
 import { INatTaxaInput } from '@/components/inputs/INatTaxaInput';
 import { Timestamp } from '@/components/text/Timestamp';
 import { useCreateCaptureFromSnapshot, useSnapshot } from '@/services/api/snapshot';
+import { Flags } from '@/services/backstage/config';
+import { useFlag } from '@critter/backstage';
 import { Button } from '@critter/react/button/juicy';
 import { Form } from '@critter/react/forms/Form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -89,6 +91,7 @@ export const Editor: FC<SnapshotProps> = ({ id }) => {
   const discard = methods.watch('discard');
   const taxa = methods.watch('taxa');
   const boundingBoxes = methods.watch('boundingBoxes');
+  // This is pretty ugly, it's worth wrapping this in a hook
   const setBoundingBoxes = useCallback(
     (valueOrFunction: BoundingBox[] | ((value: BoundingBox[]) => BoundingBox[])) => {
       if (typeof valueOrFunction === 'function') {
@@ -103,6 +106,8 @@ export const Editor: FC<SnapshotProps> = ({ id }) => {
   );
 
   const pending = snapshot.data.images.length - keep.length - discard.length;
+
+  const activeCroppingOptions = useFlag<Flags>('crop');
 
   return (
     <Form
@@ -169,7 +174,7 @@ export const Editor: FC<SnapshotProps> = ({ id }) => {
         <div className="h-full flex items-center justify-center">
           {mainImageIndex !== undefined && (
             <Main key={snapshot.data.images[mainImageIndex]} url={snapshot.data.images[mainImageIndex]}>
-              <BoundingBoxInput value={boundingBoxes} onChange={setBoundingBoxes} />
+              {activeCroppingOptions && <BoundingBoxInput value={boundingBoxes} onChange={setBoundingBoxes} />}
             </Main>
           )}
         </div>

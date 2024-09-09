@@ -10,5 +10,7 @@ export const config: DeepPartial<Config> = {
 
     docsUrl: 'https://github.com/changesbyjames/crittercapture/tree/main/docs'
   },
-  flags: {}
+  flags: {
+    crop: false
+  }
 };

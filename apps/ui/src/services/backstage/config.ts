@@ -9,7 +9,7 @@ export interface Config extends BackstageConfig {
     docsUrl: string;
   };
   flags: {
-    b: boolean;
+    crop: boolean;
   };
 }
 
