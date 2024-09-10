@@ -7,8 +7,27 @@ export default router({
     return getCapture(input.id);
   }),
   snapshotToCapture: editorProcedure
-    .input(z.object({ snapshotId: z.number(), name: z.string().optional(), images: z.array(z.string()) }))
+    .input(
+      z.object({
+        snapshotId: z.number(),
+        name: z.string().optional(),
+        images: z.array(
+          z.object({
+            url: z.string(),
+            boundingBoxes: z.array(
+              z.object({
+                id: z.string(),
+                x: z.number(),
+                y: z.number(),
+                width: z.number(),
+                height: z.number()
+              })
+            )
+          })
+        )
+      })
+    )
     .mutation(async ({ input }) => {
-      return createCapture(input.snapshotId, input.images, input.name);
+      return createCapture(input);
     })
 });

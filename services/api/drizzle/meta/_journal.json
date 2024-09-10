@@ -43,6 +43,13 @@
       "when": 1725486029848,
       "tag": "0005_regular_bruce_banner",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1725988011454,
+      "tag": "0006_careless_thunderbolt",
+      "breakpoints": true
     }
   ]
 }

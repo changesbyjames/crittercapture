@@ -8,5 +8,7 @@ export const config: DeepPartial<Config> = {
     // apiBaseUrl: 'http://localhost:35523'
     // imageResizeCDNUrl: 'https://crittercapture.club/cdn-cgi/image',
   },
-  flags: {}
+  flags: {
+    crop: true
+  }
 };

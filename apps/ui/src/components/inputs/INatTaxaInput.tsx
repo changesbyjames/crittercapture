@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useDebounce, useMeasure } from '@uidotdev/usehooks';
 import { Command } from 'cmdk';
 import { FC, useState } from 'react';
-interface InputProps<T> {
+
+export interface InputProps<T> {
   onSelect: (value: T) => void;
   placeholder?: string;
 }
