@@ -1,3 +1,4 @@
+import { BoundingBox } from '@/components/inputs/BoundingBoxInput';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
 import { key, useAPI, useLiveQuery } from '../query/hooks';
@@ -25,7 +26,10 @@ export const useSnapshot = (id: number) => {
 
 interface CreateCaptureFromSnapshotInput {
   snapshotId: number;
-  images: string[];
+  images: {
+    url: string;
+    boundingBoxes: BoundingBox[];
+  }[];
   name?: string;
 }
 export const useCreateCaptureFromSnapshot = () => {

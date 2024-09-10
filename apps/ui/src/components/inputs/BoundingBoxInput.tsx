@@ -1,5 +1,8 @@
-import { FC, useEffect, useRef } from 'react';
+import { cn } from '@critter/react/utils/cn';
+import { AnimatePresence, motion } from 'framer-motion';
+import { FC, forwardRef, HTMLAttributes, MouseEventHandler, useCallback, useEffect, useRef } from 'react';
 import { Corner } from '../assets/icons/Corner';
+import { Trash } from '../assets/icons/Trash';
 
 export interface InputProps<T> {
   onChange: (value: T | ((value: T) => T)) => void;
@@ -47,14 +50,6 @@ const applyBoundingBoxToElement = (element: HTMLDivElement, box: BoundingBox) =>
   Object.assign(element.style, style);
 };
 
-const isInsideBox = (box: BoundingBox, x: number, y: number) => {
-  return x >= box.x && x <= box.x + box.width && y >= box.y && y <= box.y + box.height;
-};
-
-const findBox = (boxes: BoundingBox[], x: number, y: number) => {
-  return boxes.find(box => isInsideBox(box, x, y));
-};
-
 const updateBoxPositionFromMousePosition = (box: BoundingBoxWorkingCopy, x: number, y: number) => {
   if (!box.origin.inner) {
     throw new Error('Box origin inner is undefined');
@@ -86,10 +81,139 @@ export const BoundingBoxInput: FC<InputProps<BoundingBox[]>> = ({ onChange, valu
   const pending = useRef<BoundingBoxWorkingCopy | null>(null);
   const pendingBoxRef = useRef<HTMLDivElement | null>(null);
 
-  const ref = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const boundingBoxOnMouseMove: MouseEventHandler<HTMLDivElement> = useCallback(event => {
+    if (!pending.current) {
+      return;
+    }
+    if (!containerRef.current) {
+      return;
+    }
+    const node = containerRef.current;
+    const rect = node.getBoundingClientRect();
+    const box = pending.current;
+    if (!box) return;
+
+    try {
+      const point = {
+        x: Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)),
+        y: Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height))
+      };
+
+      if (box.origin.inner && box.state === 'editing') {
+        // If it was grabbed from the inside, then we want to update the position.
+        pending.current = updateBoxPositionFromMousePosition(box, point.x, point.y);
+        return;
+      }
+
+      // Otherwise, we are in resize mode.
+      pending.current = updateBoxSizeFromMousePosition(box, point.x, point.y);
+    } finally {
+      applyBoundingBoxToElement(pendingBoxRef.current!, pending.current!);
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  }, []);
+
+  const boundingBoxOnMouseDown: MouseEventHandler<HTMLDivElement> = useCallback(
+    event => {
+      if (pending.current) {
+        return;
+      }
+      if (!containerRef.current) {
+        return;
+      }
+      const node = containerRef.current;
+      const box = event.target as HTMLDivElement;
+      if (!box) {
+        console.log('No box');
+        return;
+      }
+      const id = box.getAttribute('data-id');
+      if (!id) {
+        console.log('No id');
+        return;
+      }
+      const rect = node.getBoundingClientRect();
+      // Boxes are normalised to be 0-1 for all dimensions
+      const origin = {
+        x: (event.clientX - rect.left) / rect.width,
+        y: (event.clientY - rect.top) / rect.height
+      };
+
+      try {
+        const box = value.find(b => b.id === id);
+        if (!box) throw new Error('Box not found');
+        // Where the click is in relation to the box
+        const inner = {
+          x: origin.x - box.x,
+          y: origin.y - box.y
+        };
+
+        pending.current = {
+          ...box,
+          origin: { canvas: origin, inner },
+          state: 'editing'
+        };
+
+        return;
+      } finally {
+        box.style.opacity = '0';
+
+        if (!pendingBoxRef.current || !pending.current) {
+          console.warn('No pending box or pending');
+        }
+
+        pendingBoxRef.current!.style.opacity = '1';
+        applyBoundingBoxToElement(pendingBoxRef.current!, pending.current!);
+        event.stopPropagation();
+        event.preventDefault();
+      }
+    },
+    [value]
+  );
+
+  const boundingBoxOnMouseUp: MouseEventHandler<HTMLDivElement> = useCallback(
+    event => {
+      if (!pending.current) {
+        return;
+      }
+      if (!containerRef.current) {
+        return;
+      }
+      const box = event.target as HTMLDivElement;
+      if (!box) {
+        console.log('No box');
+        return;
+      }
+
+      try {
+        if (!pending.current) return;
+        if (pending.current.width < 0.05 || pending.current.height < 0.05) {
+          // If the box is too small, we should remove it.
+          return;
+        }
+
+        onChange(value => {
+          if (!value) return [pending.current!];
+          return [...value.filter(box => box.id !== pending.current!.id), pending.current!];
+        });
+      } finally {
+        box.style.opacity = '1';
+        pendingBoxRef.current!.style.opacity = '0';
+
+        pending.current = null;
+        applyBoundingBoxToElement(pendingBoxRef.current!, pending.current!);
+        event.stopPropagation();
+        event.preventDefault();
+      }
+    },
+    [onChange]
+  );
 
   useEffect(() => {
-    const node = ref.current;
+    const node = containerRef.current;
     if (!node) {
       console.log('No ref!');
       return;
@@ -110,27 +234,6 @@ export const BoundingBoxInput: FC<InputProps<BoundingBox[]>> = ({ onChange, valu
         };
 
         try {
-          const box = findBox(value, origin.x, origin.y);
-          if (box) {
-            // Where the click is in relation to the box
-            const inner = {
-              x: origin.x - box.x,
-              y: origin.y - box.y
-            };
-
-            pending.current = {
-              ...box,
-              origin: { canvas: origin, inner },
-              state: 'editing'
-            };
-
-            // As the box actually exists in `value`, we need to make it invisible as we transition to editing mode
-            // and use the pending box to show the user where the box will be if they continue to drag.
-            const clickedBoxElement = node.querySelector(`[data-id="${box.id}"]`) as HTMLDivElement | null;
-            if (clickedBoxElement) clickedBoxElement.style.opacity = '0';
-            return;
-          }
-
           pending.current = {
             id: crypto.randomUUID(),
             x: origin.x,
@@ -143,6 +246,7 @@ export const BoundingBoxInput: FC<InputProps<BoundingBox[]>> = ({ onChange, valu
             state: 'drawing'
           };
         } finally {
+          pendingBoxRef.current!.style.opacity = '1';
           applyBoundingBoxToElement(pendingBoxRef.current!, pending.current!);
           e.stopPropagation();
           e.preventDefault();
@@ -198,6 +302,7 @@ export const BoundingBoxInput: FC<InputProps<BoundingBox[]>> = ({ onChange, valu
           if (clickedBoxElement) {
             clickedBoxElement.style.opacity = '1';
           }
+          pendingBoxRef.current!.style.opacity = '0';
           pending.current = null;
           applyBoundingBoxToElement(pendingBoxRef.current!, pending.current!);
         }
@@ -209,37 +314,90 @@ export const BoundingBoxInput: FC<InputProps<BoundingBox[]>> = ({ onChange, valu
   }, [onChange, value]);
 
   return (
-    <div ref={ref} className="absolute inset-0 z-40">
-      <div ref={pendingBoxRef} className="absolute bg-white bg-opacity-25 shadow-md">
-        <Corner className="absolute -top-1 -left-1" />
-        <Corner className="absolute -top-1 -right-1 rotate-90" />
-        <Corner className="absolute -bottom-1 -left-1 -rotate-90" />
-        <Corner className="absolute -bottom-1 -right-1 rotate-180" />
-      </div>
-      {value.map(box => (
-        <div
-          key={`${box.id}-${box.x}-${box.y}`}
-          data-id={box.id}
-          style={getStyleForBox(box)}
-          className="absolute bg-white bg-opacity-25"
-        >
-          <button
-            type="button"
-            className="bg-white bg-opacity-15"
-            onClick={e => {
-              onChange(value => value.filter(b => b.id !== box.id));
-              e.stopPropagation();
-              e.preventDefault();
-            }}
+    <>
+      <div className="absolute inset-0 z-40 pointer-events-none">
+        {value.map(box => (
+          <BoundingBox
+            key={`${box.id}-${box.x}-${box.y}`}
+            data-id={box.id}
+            style={getStyleForBox(box)}
+            onMouseDown={boundingBoxOnMouseDown}
+            onMouseMove={boundingBoxOnMouseMove}
+            onMouseUp={boundingBoxOnMouseUp}
           >
-            Remove
-          </button>
-          <Corner className="absolute -top-1 -left-1 shadow-lg" />
-          <Corner className="absolute -top-1 -right-1 rotate-90 shadow-lg" />
-          <Corner className="absolute -bottom-1 -left-1 -rotate-90 shadow-lg" />
-          <Corner className="absolute -bottom-1 -right-1 rotate-180 shadow-lg" />
-        </div>
-      ))}
+            <motion.button
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              type="button"
+              className="bg-black bg-opacity-40 text-white flex justify-center items-center p-2 rounded-lg absolute top-3 right-3"
+              onClick={e => {
+                onChange(value => value.filter(b => b.id !== box.id));
+                e.stopPropagation();
+                e.preventDefault();
+              }}
+            >
+              <Trash />
+            </motion.button>
+          </BoundingBox>
+        ))}
+      </div>
+      <div ref={containerRef} className="absolute inset-0 z-30 cursor-crosshair">
+        <BoundingBox offset={0} style={{ opacity: 0 }} className="overflow-clip" ref={pendingBoxRef}></BoundingBox>
+      </div>
+    </>
+  );
+};
+
+interface BoundingBoxProps extends HTMLAttributes<HTMLDivElement> {
+  offset?: number;
+}
+const BoundingBox = forwardRef<HTMLDivElement, BoundingBoxProps>(
+  ({ children, className, offset = 4, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn('absolute bg-white bg-opacity-25 shadow-md pointer-events-auto', className)}
+        {...props}
+      >
+        {children}
+        <motion.span initial={{ left: 0, top: 0 }} animate={{ left: -offset, top: -offset }} className="absolute">
+          <Corner />
+        </motion.span>
+        <motion.span initial={{ right: 0, top: 0 }} animate={{ right: -offset, top: -offset }} className="absolute">
+          <Corner className="rotate-90" />
+        </motion.span>
+        <motion.span initial={{ left: 0, bottom: 0 }} animate={{ left: -offset, bottom: -offset }} className="absolute">
+          <Corner className="-rotate-90" />
+        </motion.span>
+        <motion.span
+          initial={{ right: 0, bottom: 0 }}
+          animate={{ right: -offset, bottom: -offset }}
+          className="absolute"
+        >
+          <Corner className="rotate-180" />
+        </motion.span>
+      </div>
+    );
+  }
+);
+
+interface BoundingBoxViewProps extends HTMLAttributes<HTMLDivElement> {
+  boxes: BoundingBox[];
+}
+
+export const BoundingBoxView: FC<BoundingBoxViewProps> = ({ boxes, className, ...props }) => {
+  return (
+    <div className={cn('absolute inset-0 z-10 pointer-events-none', className)} {...props}>
+      <AnimatePresence initial={false}>
+        {boxes.map(box => (
+          <BoundingBox
+            offset={6}
+            key={box.id}
+            style={getStyleForBox(box)}
+            className="bg-opacity-0 border-2 border-white"
+          />
+        ))}
+      </AnimatePresence>
     </div>
   );
 };

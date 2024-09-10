@@ -1,17 +1,15 @@
 import { Note } from '@/components/containers/Note';
 import { Timestamp } from '@/components/text/Timestamp';
 import { useSnapshot } from '@/services/api/snapshot';
-import { FC, useState } from 'react';
-import { Dock } from '../../components/controls/Dock';
+import { FC, Suspense, useState } from 'react';
+import { Dock, DockKeyNavigator } from '../../components/controls/Dock';
 import { Main } from './images/Main';
+import { Thumbnail } from './images/Thumbnail';
 import { SnapshotProps } from './Snapshot';
 
 export const ReadOnly: FC<SnapshotProps> = ({ id }) => {
   const snapshot = useSnapshot(id);
-
-  const [mainImageIndex, setMainImageIndex] = useState<number | undefined>(
-    snapshot.data.images.length > 0 ? 0 : undefined
-  );
+  const [index, setIndex] = useState<number | undefined>(snapshot.data.images.length > 0 ? 0 : undefined);
 
   return (
     <div className="flex-1 bg-accent-100 p-8 flex flex-col gap-6 items-center">
@@ -30,12 +28,19 @@ export const ReadOnly: FC<SnapshotProps> = ({ id }) => {
       </nav>
       <div className="w-full relative flex-1">
         <div className="h-full flex items-center justify-center">
-          {mainImageIndex !== undefined && (
-            <Main key={snapshot.data.images[mainImageIndex]} url={snapshot.data.images[mainImageIndex]} />
-          )}
+          {index !== undefined && <Main key={snapshot.data.images[index]} url={snapshot.data.images[index]} />}
         </div>
       </div>
-      <Dock images={snapshot.data.images} selectedIndex={mainImageIndex} setSelectedIndex={setMainImageIndex} />
+      <Dock>
+        <DockKeyNavigator length={snapshot.data.images.length} index={index} setIndex={setIndex} />
+        {snapshot.data.images.map((image, i) => {
+          return (
+            <Suspense key={image} fallback={null}>
+              <Thumbnail url={image} selected={index === i} onClick={() => setIndex(i)} />
+            </Suspense>
+          );
+        })}
+      </Dock>
     </div>
   );
 };

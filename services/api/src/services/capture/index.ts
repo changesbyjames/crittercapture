@@ -1,11 +1,22 @@
 import { eq } from 'drizzle-orm';
-import { captures, images, snapshots } from '../../db/schema/index.js';
+import { BoundingBox, captures, images, snapshots } from '../../db/schema/index.js';
 import { useEnvironment } from '../../utils/env/env.js';
 
-export const createCapture = async (snapshotId: number, imagesToKeep: string[], name?: string) => {
+interface Images {
+  url: string;
+  boundingBoxes: BoundingBox[];
+}
+
+interface CreateCaptureInput {
+  snapshotId: number;
+  images: Images[];
+  name?: string;
+}
+
+export const createCapture = async (input: CreateCaptureInput) => {
   const { db } = useEnvironment();
   const snapshot = await db.query.snapshots.findFirst({
-    where: eq(snapshots.id, snapshotId)
+    where: eq(snapshots.id, input.snapshotId)
   });
   if (!snapshot) throw new Error('Snapshot not found');
 
@@ -15,12 +26,16 @@ export const createCapture = async (snapshotId: number, imagesToKeep: string[], 
       .values({
         createdAt: snapshot.createdAt,
         createdBy: snapshot.createdBy,
-        name
+        name: input.name
       })
       .returning();
 
-    await tx.insert(images).values(imagesToKeep.map(image => ({ url: image, captureId: capture.id })));
-    await tx.update(snapshots).set({ captureId: capture.id }).where(eq(snapshots.id, snapshotId));
+    await tx
+      .insert(images)
+      .values(
+        input.images.map(image => ({ url: image.url, captureId: capture.id, boundingBoxes: image.boundingBoxes }))
+      );
+    await tx.update(snapshots).set({ captureId: capture.id }).where(eq(snapshots.id, input.snapshotId));
 
     return capture;
   });

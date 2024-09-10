@@ -54,12 +54,22 @@ export const capturesRelations = relations(captures, ({ many }) => ({
   images: many(images)
 }));
 
+export interface BoundingBox {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export const images = pgTable('images', {
   id: serial('id').primaryKey(),
   url: text('url').notNull(),
   captureId: integer('capture_id')
     .references(() => captures.id)
-    .notNull()
+    .notNull(),
+
+  boundingBoxes: json('bounding_boxes').$type<BoundingBox[]>().default([]).notNull()
 });
 
 export const imagesRelations = relations(images, ({ one }) => ({
