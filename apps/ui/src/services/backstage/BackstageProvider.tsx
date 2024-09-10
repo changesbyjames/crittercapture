@@ -3,6 +3,15 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { FC, PropsWithChildren } from 'react';
 import { config, url } from './local';
 
+const getFlagsFromSearchParams = () => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const flags: Record<string, true> = {};
+  searchParams.forEach((_, key) => {
+    flags[key] = true;
+  });
+  return flags;
+};
+
 export const BackstageProvider: FC<PropsWithChildren> = ({ children }) => {
   const providers = useSuspenseQuery<ProviderConfiguration[]>({
     queryKey: ['backstage-providers'],
@@ -23,6 +32,14 @@ export const BackstageProvider: FC<PropsWithChildren> = ({ children }) => {
           });
         }
       }
+
+      providers.push({
+        priority: 2,
+        config: {
+          variables: {},
+          flags: getFlagsFromSearchParams()
+        }
+      });
 
       if (import.meta.env.PROD) {
         const response = await fetch('/backstage.json');

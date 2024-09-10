@@ -9,6 +9,6 @@ export const config: DeepPartial<Config> = {
     // imageResizeCDNUrl: 'https://crittercapture.club/cdn-cgi/image',
   },
   flags: {
-    crop: true
+    crop: false
   }
 };
